@@ -1,7 +1,1 @@
-struct entity {
-  int health;
-};
-
-struct michael {
-  struct entity entity;
-};
+#include "entity.h"
