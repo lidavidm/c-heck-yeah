@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define ENTITY_COUNT 2000
+#include "defines.h"
 
 typedef enum {
   NONE = 0,
@@ -27,5 +27,18 @@ typedef struct Sprite {
   int numFrames;
   SDL_Rect *frames;
 } Sprite;
+
+typedef struct World {
+  int mask[ENTITY_COUNT];
+
+  Health health[ENTITY_COUNT];
+  Sprite sprite[ENTITY_COUNT];
+} World;
+
+void newSprite(World *world, int entity);
+
+
+int newEntity(World *world);
+void drawSprites(World *world);
 
 #endif

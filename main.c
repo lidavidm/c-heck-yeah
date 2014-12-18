@@ -16,7 +16,7 @@ int main(void) {
   SDL_Event evt;
   unsigned int lastTime = 0;
   unsigned int lag = 0;
-  Screen screen = SCREEN_LEVEL;
+  Screen screen = SCREEN_MAIN;
   World world = {};
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -46,6 +46,8 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
+  initMain(&world);
+
   while (!quit) {
     unsigned int currentTime = SDL_GetTicks();
     unsigned int delta = currentTime - lastTime;
@@ -61,6 +63,9 @@ int main(void) {
 
     while (lag >= TICKS_PER_UPDATE) {
       switch (screen) {
+      case SCREEN_MAIN:
+        updateMain(&world);
+        break;
       case SCREEN_LEVEL:
         updateLevel(&world);
         break;
@@ -72,6 +77,9 @@ int main(void) {
 
     SDL_RenderClear(renderer);
     switch (screen) {
+    case SCREEN_MAIN:
+      renderMain(&world, renderer);
+      break;
     case SCREEN_LEVEL:
       renderLevel(&world, renderer);
       break;
