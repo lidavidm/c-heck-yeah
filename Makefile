@@ -1,10 +1,10 @@
 CC=clang
 LDFLAGS=
-CFLAGS=-g -O0 -Wall -Werror -Wextra -fsanitize=address -Wno-error=unused-parameter
+CFLAGS=-g -O0 -Wall -Werror -Wextra -Wno-error=unused-parameter -fsanitize=address
 SOURCES=main.c entity.c screens.c
 OBJECTS=$(SOURCES:.c=.o)
 INC=/usr/include/SDL2
-LIB=SDL2
+LIB=SDL2 SDL2_ttf
 INCPARAMS=$(foreach d, $(INC), -I$d)
 LIBPARAMS=$(foreach d, $(LIB), -l$d)
 

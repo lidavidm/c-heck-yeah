@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -40,6 +41,23 @@ int main(void) {
                                 SDL_RENDERER_PRESENTVSYNC);
   if (renderer == NULL) {
     printf("Couldn't create renderer. Error: %s\n", SDL_GetError());
+    goto cleanup;
+  }
+  world.renderer = renderer;
+
+  if (TTF_Init() != 0) {
+    printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
+    goto cleanup;
+  }
+
+  SDL_RWops *fontFile = SDL_RWFromFile("nsans.ttf", "rb");
+  if (fontFile == NULL) {
+    printf("%d Couldn't load font. Error: %s\n", __LINE__, SDL_GetError());
+    goto cleanup;
+  }
+  world.font = TTF_OpenFontRW(fontFile, 1, 24);
+  if (world.font == NULL) {
+    printf("%d Couldn't load font. Error: %s\n", __LINE__, TTF_GetError());
     goto cleanup;
   }
 
@@ -96,6 +114,7 @@ int main(void) {
  cleanup:
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+  TTF_Quit();
   SDL_Quit();
   return 0;
 }
