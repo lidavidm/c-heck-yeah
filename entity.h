@@ -9,9 +9,15 @@
 
 typedef enum {
   NONE = 0,
-  HEALTH = 1 << 0,
-  SPRITE = 1 << 1
+  POSITION = 1 << 1,
+  SPRITE = 1 << 2,
+  HEALTH = 1 << 3
 } Component;
+
+typedef struct Position {
+  int x;
+  int y;
+} Position;
 
 typedef struct Health {
   int health;
@@ -26,7 +32,8 @@ typedef struct Sprite {
   int frameHeight;
 
   int numFrames;
-  SDL_Rect *frames;
+  int curFrame;
+  SDL_Rect frames[];
 } Sprite;
 
 typedef struct Text {
@@ -35,6 +42,7 @@ typedef struct Text {
 typedef struct World {
   int mask[ENTITY_COUNT];
 
+  Position position[ENTITY_COUNT];
   Health health[ENTITY_COUNT];
   Sprite sprite[ENTITY_COUNT];
 
@@ -42,10 +50,16 @@ typedef struct World {
   SDL_Renderer *renderer;
 } World;
 
-void newSprite(World *world, int entity, int frames);
+void newPosition(World *world, int entity);
+void newSprite(World *world, int entity,
+               int textureWidth, int textureHeight,
+               int frameWidth, int frameHeight, int frames);
 void newText(World *world, int entity, char* text);
 
 int newEntity(World *world);
-void drawSprites(World *world);
+
+void setPositionX(World *world, int entity, int x);
+void setPositionY(World *world, int entity, int y);
+void setPosition(World *world, int entity, int x, int y);
 
 #endif

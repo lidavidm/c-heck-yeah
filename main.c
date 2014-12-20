@@ -55,7 +55,7 @@ int main(void) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, SDL_GetError());
     goto cleanup;
   }
-  world.font = TTF_OpenFontRW(fontFile, 1, 24);
+  world.font = TTF_OpenFontRW(fontFile, 1, 42);
   if (world.font == NULL) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, TTF_GetError());
     goto cleanup;

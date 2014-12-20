@@ -50,6 +50,8 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
 - Animated sprites (spritesheets)
 - Each entity is occlusion culled and then rendered
   - Possible to use physics engine to do this culling?
+- Have some sort of global renderer that tracks z-order/layer,
+  etc. Components actually point to this single instance
 
 #### Tilemaps/Backgrounds
 

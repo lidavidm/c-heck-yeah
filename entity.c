@@ -15,31 +15,64 @@ int newEntity(World *world) {
   return -1;
 }
 
-void newSprite(World *world, int entity, int frames) {
+void newPosition(World *world, int entity) {
+  world->mask[entity] |= POSITION;
+  world->position[entity] = (Position) { 0, 0 };
+}
+
+void newSprite(World *world, int entity,
+               int textureWidth, int textureHeight,
+               int frameWidth, int frameHeight, int frames) {
   world->mask[entity] |= SPRITE;
   Sprite *sprite = malloc(sizeof(Sprite) + frames * sizeof(SDL_Rect));
+  sprite->curFrame = 0;
+  sprite->numFrames = frames;
+  sprite->textureWidth = textureWidth;
+  sprite->textureHeight = textureHeight;
+  sprite->frameWidth = frameWidth;
+  sprite->frameHeight = frameHeight;
   world->sprite[entity] = *sprite;
 
-  // TODO: precalculate rects for frames
+  // precalculate rects for frames
+  for (int i = 0; i < frames; i++) {
+    world->sprite[entity].frames[i] = (SDL_Rect) {
+      i * frameWidth,
+      i * frameHeight,
+      frameWidth,
+      frameHeight
+    };
+  }
 }
 
 void newText(World *world, int entity, char* text) {
-  SDL_Surface *surface = TTF_RenderText_Solid(world->font, text, (SDL_Color) { 255, 255, 255, 255 });
+  SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, (SDL_Color) { 255, 255, 255, 255 });
 
   if (surface == NULL) {
     printf("%d Couldn't render text! Error: %s\n", __LINE__, TTF_GetError());
     // end program
   }
 
-  newSprite(world, entity, 1);
-  world->sprite[entity].texture =
+  SDL_Texture *texture =
     SDL_CreateTextureFromSurface(world->renderer, surface);
-  if (world->sprite[entity].texture == NULL) {
+  if (texture == NULL) {
     printf("Couldn't render text! Error: %s\n", SDL_GetError());
     // TODO: handle error
   }
-  world->sprite[entity].textureWidth = world->sprite[entity].frameWidth = surface->w;
-  world->sprite[entity].textureHeight = world->sprite[entity].frameHeight = surface->h;
+  newSprite(world, entity, surface->w, surface->h, surface->w, surface->h, 1);
+  world->sprite[entity].texture = texture;
 
   SDL_FreeSurface(surface);
+}
+
+void setPositionX(World *world, int entity, int x) {
+  world->position[entity].x = x;
+}
+
+void setPositionY(World *world, int entity, int y) {
+  world->position[entity].y = y;
+}
+
+void setPosition(World *world, int entity, int x, int y) {
+  world->position[entity].x = x;
+  world->position[entity].y = y;
 }
