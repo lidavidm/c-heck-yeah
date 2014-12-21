@@ -4,7 +4,7 @@ CFLAGS=-g -O0 -Wall -Werror -Wextra -Wno-error=unused-parameter -fsanitize=addre
 SOURCES=main.c entity.c screens.c
 OBJECTS=$(SOURCES:.c=.o)
 INC=/usr/include/SDL2
-LIB=SDL2 SDL2_ttf
+LIB=SDL2 SDL2_ttf SDL2_image
 INCPARAMS=$(foreach d, $(INC), -I$d)
 LIBPARAMS=$(foreach d, $(LIB), -l$d)
 

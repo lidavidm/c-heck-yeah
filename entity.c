@@ -21,13 +21,13 @@ void Position_New(World *world, int entity) {
 }
 
 void Sprite_New(World *world, int entity,
-               int textureWidth, int textureHeight,
-               int frameWidth, int frameHeight, int frames) {
+                int width, int height,
+                int frameWidth, int frameHeight, int frames) {
   world->mask[entity] |= SPRITE;
   world->sprite[entity] = (Sprite) {
+    width,
+    height,
     NULL,
-    textureWidth,
-    textureHeight,
     frameWidth,
     frameHeight,
     frames,
@@ -45,6 +45,14 @@ void Sprite_New(World *world, int entity,
       frameHeight
     };
   }
+}
+
+void Sprite_NewFromTexture(World *world, int entity,
+                           int width, int height,
+                           SDL_Texture *texture,
+                           int frameWidth, int frameHeight, int frames) {
+  Sprite_New(world, entity, width, height, frameWidth, frameHeight, frames);
+  world->sprite[entity].texture = texture;
 }
 
 void Text_New(World *world, int entity, char* text, SDL_Color color) {

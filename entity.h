@@ -24,13 +24,14 @@ typedef struct Health {
 } Health;
 
 typedef struct Sprite {
+  // the size to render the sprite at
+  int width;
+  int height;
+
   SDL_Texture *texture;
-  int textureWidth;
-  int textureHeight;
 
   int frameWidth;
   int frameHeight;
-
   int numFrames;
   int curFrame;
   SDL_Rect *frames;
@@ -52,8 +53,12 @@ typedef struct World {
 
 void Position_New(World *world, int entity);
 void Sprite_New(World *world, int entity,
-               int textureWidth, int textureHeight,
-               int frameWidth, int frameHeight, int frames);
+                int width, int height,
+                int frameWidth, int frameHeight, int frames);
+void Sprite_NewFromTexture(World *world, int entity,
+                           int width, int height,
+                           SDL_Texture *texture,
+                           int frameWidth, int frameHeight, int frames);
 void Text_New(World *world, int entity, char* text, SDL_Color color);
 
 int Entity_New(World *world);

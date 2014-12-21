@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <SDL.h>
+#include <SDL_image.h>
 #include <SDL_ttf.h>
 
 #define WINDOW_WIDTH 1280
@@ -47,6 +48,11 @@ int main(void) {
 
   if (TTF_Init() != 0) {
     printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
+    goto cleanup;
+  }
+
+  if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+    printf("Couldn't load image loader. Error: %s\n", IMG_GetError());
     goto cleanup;
   }
 
