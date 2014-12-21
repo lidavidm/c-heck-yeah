@@ -14,17 +14,17 @@
     For rendering: have a separate renderer that is given pointers to the
     relevant components
  */
-void initMain(World *world) {
+void Main_Init(World *world) {
   int entity = Entity_New(world);
   Position_New(world, entity);
   Position_SetXY(world, entity, 50, 211);
   Text_New(world, entity, "Magical Girl Michael Mauer");
 }
 
-void updateMain(World *world) {
+void Main_Update(World *world) {
 }
 
-void renderMain(World *world, SDL_Renderer *renderer) {
+void Main_Render(World *world, SDL_Renderer *renderer) {
   for (int i = 0; i < ENTITY_COUNT; i++) {
     if (world->mask[i] & SPRITE) {
       int frame = world->sprite[i].curFrame;
@@ -43,8 +43,8 @@ void renderMain(World *world, SDL_Renderer *renderer) {
   }
 }
 
-void updateLevel(World *world) {
+void Level_Update(World *world) {
 }
 
-void renderLevel(World *world, SDL_Renderer *renderer) {
+void Level_Render(World *world, SDL_Renderer *renderer) {
 }

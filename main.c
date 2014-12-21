@@ -64,7 +64,7 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-  initMain(&world);
+  Main_Init(&world);
 
   while (!quit) {
     unsigned int currentTime = SDL_GetTicks();
@@ -82,10 +82,10 @@ int main(void) {
     while (lag >= TICKS_PER_UPDATE) {
       switch (screen) {
       case SCREEN_MAIN:
-        updateMain(&world);
+        Main_Update(&world);
         break;
       case SCREEN_LEVEL:
-        updateLevel(&world);
+        Level_Update(&world);
         break;
       default:
         break;
@@ -96,10 +96,10 @@ int main(void) {
     SDL_RenderClear(renderer);
     switch (screen) {
     case SCREEN_MAIN:
-      renderMain(&world, renderer);
+      Main_Render(&world, renderer);
       break;
     case SCREEN_LEVEL:
-      renderLevel(&world, renderer);
+      Level_Render(&world, renderer);
       break;
     default:
       break;

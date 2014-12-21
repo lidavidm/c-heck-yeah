@@ -14,11 +14,11 @@ typedef enum {
   SCREEN_CREDITS
 } Screen;
 
-void initMain(World *world);
-void updateMain(World *world);
-void renderMain(World *world, SDL_Renderer *renderer);
+void Main_Init(World *world);
+void Main_Update(World *world);
+void Main_Render(World *world, SDL_Renderer *renderer);
 
-void updateLevel(World *world);
-void renderLevel(World *world, SDL_Renderer *renderer);
+void Level_Update(World *world);
+void Level_Render(World *world, SDL_Renderer *renderer);
 
 #endif
