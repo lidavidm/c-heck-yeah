@@ -50,16 +50,18 @@ typedef struct World {
   SDL_Renderer *renderer;
 } World;
 
-void newPosition(World *world, int entity);
-void newSprite(World *world, int entity,
+void Position_New(World *world, int entity);
+void Sprite_New(World *world, int entity,
                int textureWidth, int textureHeight,
                int frameWidth, int frameHeight, int frames);
-void newText(World *world, int entity, char* text);
+void Text_New(World *world, int entity, char* text);
 
-int newEntity(World *world);
+int Entity_New(World *world);
 
-void setPositionX(World *world, int entity, int x);
-void setPositionY(World *world, int entity, int y);
-void setPosition(World *world, int entity, int x, int y);
+void Position_SetX(World *world, int entity, int x);
+void Position_SetY(World *world, int entity, int y);
+void Position_SetXY(World *world, int entity, int x, int y);
+
+void World_Free(World *world);
 
 #endif

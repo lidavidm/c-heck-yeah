@@ -6,7 +6,7 @@
  *
  * Returns: index to the entity, or -1 if no more entities can be created.
  */
-int newEntity(World *world) {
+int Entity_New(World *world) {
   for (int i = 0; i < ENTITY_COUNT; i++) {
     if (world->mask[i] == NONE) {
       return i;
@@ -15,12 +15,12 @@ int newEntity(World *world) {
   return -1;
 }
 
-void newPosition(World *world, int entity) {
+void Position_New(World *world, int entity) {
   world->mask[entity] |= POSITION;
   world->position[entity] = (Position) { 0, 0 };
 }
 
-void newSprite(World *world, int entity,
+void Sprite_New(World *world, int entity,
                int textureWidth, int textureHeight,
                int frameWidth, int frameHeight, int frames) {
   world->mask[entity] |= SPRITE;
@@ -44,7 +44,7 @@ void newSprite(World *world, int entity,
   }
 }
 
-void newText(World *world, int entity, char* text) {
+void Text_New(World *world, int entity, char* text) {
   SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, (SDL_Color) { 255, 255, 255, 255 });
 
   if (surface == NULL) {
@@ -58,21 +58,21 @@ void newText(World *world, int entity, char* text) {
     printf("Couldn't render text! Error: %s\n", SDL_GetError());
     // TODO: handle error
   }
-  newSprite(world, entity, surface->w, surface->h, surface->w, surface->h, 1);
+  Sprite_New(world, entity, surface->w, surface->h, surface->w, surface->h, 1);
   world->sprite[entity].texture = texture;
 
   SDL_FreeSurface(surface);
 }
 
-void setPositionX(World *world, int entity, int x) {
+void Position_SetX(World *world, int entity, int x) {
   world->position[entity].x = x;
 }
 
-void setPositionY(World *world, int entity, int y) {
+void Position_SetY(World *world, int entity, int y) {
   world->position[entity].y = y;
 }
 
-void setPosition(World *world, int entity, int x, int y) {
+void Position_SetXY(World *world, int entity, int x, int y) {
   world->position[entity].x = x;
   world->position[entity].y = y;
 }

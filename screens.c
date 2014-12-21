@@ -15,10 +15,10 @@
     relevant components
  */
 void initMain(World *world) {
-  int entity = newEntity(world);
-  newPosition(world, entity);
-  setPosition(world, entity, 50, 211);
-  newText(world, entity, "Magical Girl Michael Mauer");
+  int entity = Entity_New(world);
+  Position_New(world, entity);
+  Position_SetXY(world, entity, 50, 211);
+  Text_New(world, entity, "Magical Girl Michael Mauer");
 }
 
 void updateMain(World *world) {
