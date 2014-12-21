@@ -14,7 +14,7 @@ typedef enum {
   SCREEN_CREDITS
 } Screen;
 
-void Main_Init(World *world);
+bool Main_Init(World *world);
 void Main_Update(World *world);
 void Main_Render(World *world, SDL_Renderer *renderer);
 

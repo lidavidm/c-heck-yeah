@@ -1,3 +1,4 @@
+#include "defines.h"
 #include "entity.h"
 #include "screens.h"
 
@@ -6,16 +7,10 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-#define TICKS_PER_UPDATE 25
-// 25 ms/update = 40 updates/s
-
 int main(void) {
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
   bool quit = false;
-  SDL_Event evt;
   unsigned int lastTime = 0;
   unsigned int lag = 0;
   Screen screen = SCREEN_MAIN;
@@ -70,7 +65,9 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-  Main_Init(world);
+  if (!Main_Init(world)) {
+    goto cleanup;
+  }
 
   while (!quit) {
     unsigned int currentTime = SDL_GetTicks();
@@ -82,6 +79,7 @@ int main(void) {
     while (SDL_PollEvent(&evt) != 0) {
       if (evt.type == SDL_QUIT) {
         quit = true;
+        goto cleanup;
       }
     }
 

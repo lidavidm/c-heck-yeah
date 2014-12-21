@@ -1,5 +1,7 @@
+#include "defines.h"
 #include "screens.h"
 
+#include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 
@@ -15,40 +17,50 @@
     For rendering: have a separate renderer that is given pointers to the
     relevant components
  */
-void Main_Init(World *world) {
-  int bg = Entity_New(world);
+bool Main_Init(World *world) {
+  bool error = false;
+  int bg, title, continueGame, quit;
+  SDL_Surface *surface = NULL;
+  SDL_Texture *texture = NULL;
+
+  bg = Entity_New(world);
   Position_New(world, bg);
   Position_SetXY(world, bg, 0, 0);
-  SDL_Surface *surface = IMG_Load("bg.png");
+  surface = IMG_Load("bg.png");
   if (surface == NULL) {
     printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
-    // TODO: error handling
+    goto error;
   }
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(world->renderer, surface);
+  texture = SDL_CreateTextureFromSurface(world->renderer, surface);
   if (texture == NULL) {
     printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
-    // TODO: error handling
+    goto error;
   }
-  // TODO: don't hardcode screen size
-  Sprite_NewFromTexture(world, bg, 1280, 720, texture, surface->w, surface->h, 1);
 
-  int title = Entity_New(world);
+  Sprite_NewFromTexture(world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1);
+
+  title = Entity_New(world);
   Position_New(world, title);
   Position_SetXY(world, title, 720, 151);
-  Text_New(world, title, "Magical Girl Michael Mauer", (SDL_Color) { 0, 0, 0, 200 });
+  Text_New(world, title, "Magical Girl Michael Mauer", (SDL_Color) { 200, 0, 0, 200 });
 
-  int continueGame = Entity_New(world);
+  continueGame = Entity_New(world);
   Position_New(world, continueGame);
   Position_SetXY(world, continueGame, 720, 250);
   Text_New(world, continueGame, "Continue", (SDL_Color) { 0, 0, 0, 200 });
 
-  int quit = Entity_New(world);
+  quit = Entity_New(world);
   Position_New(world, quit);
   Position_SetXY(world, quit, 720, 350);
   Text_New(world, quit, "Quit", (SDL_Color) { 0, 0, 0, 200 });
 
-  // cleanup:
+  goto cleanup;
+ error:
+  error = true;
+ cleanup:
   SDL_FreeSurface(surface);
+
+  return !error;
 }
 
 void Main_Update(World *world) {
