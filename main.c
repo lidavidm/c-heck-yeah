@@ -18,7 +18,7 @@ int main(void) {
   unsigned int lastTime = 0;
   unsigned int lag = 0;
   Screen screen = SCREEN_MAIN;
-  World world = {};
+  World *world = malloc(sizeof(World));
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("Couldn't initialize SDL. Error: %s\n", SDL_GetError());
@@ -43,7 +43,7 @@ int main(void) {
     printf("Couldn't create renderer. Error: %s\n", SDL_GetError());
     goto cleanup;
   }
-  world.renderer = renderer;
+  world->renderer = renderer;
 
   if (TTF_Init() != 0) {
     printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
@@ -55,8 +55,8 @@ int main(void) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, SDL_GetError());
     goto cleanup;
   }
-  world.font = TTF_OpenFontRW(fontFile, 1, 42);
-  if (world.font == NULL) {
+  world->font = TTF_OpenFontRW(fontFile, 1, 42);
+  if (world->font == NULL) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, TTF_GetError());
     goto cleanup;
   }
@@ -64,7 +64,7 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-  Main_Init(&world);
+  Main_Init(world);
 
   while (!quit) {
     unsigned int currentTime = SDL_GetTicks();
@@ -82,10 +82,10 @@ int main(void) {
     while (lag >= TICKS_PER_UPDATE) {
       switch (screen) {
       case SCREEN_MAIN:
-        Main_Update(&world);
+        Main_Update(world);
         break;
       case SCREEN_LEVEL:
-        Level_Update(&world);
+        Level_Update(world);
         break;
       default:
         break;
@@ -96,10 +96,10 @@ int main(void) {
     SDL_RenderClear(renderer);
     switch (screen) {
     case SCREEN_MAIN:
-      Main_Render(&world, renderer);
+      Main_Render(world, renderer);
       break;
     case SCREEN_LEVEL:
-      Level_Render(&world, renderer);
+      Level_Render(world, renderer);
       break;
     default:
       break;
@@ -112,7 +112,7 @@ int main(void) {
   }
 
  cleanup:
-  SDL_DestroyRenderer(renderer);
+  World_Free(world);
   SDL_DestroyWindow(window);
   TTF_Quit();
   SDL_Quit();

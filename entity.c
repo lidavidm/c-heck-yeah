@@ -24,14 +24,17 @@ void Sprite_New(World *world, int entity,
                int textureWidth, int textureHeight,
                int frameWidth, int frameHeight, int frames) {
   world->mask[entity] |= SPRITE;
-  Sprite *sprite = malloc(sizeof(Sprite) + frames * sizeof(SDL_Rect));
-  sprite->curFrame = 0;
-  sprite->numFrames = frames;
-  sprite->textureWidth = textureWidth;
-  sprite->textureHeight = textureHeight;
-  sprite->frameWidth = frameWidth;
-  sprite->frameHeight = frameHeight;
-  world->sprite[entity] = *sprite;
+  world->sprite[entity] = (Sprite) {
+    NULL,
+    textureWidth,
+    textureHeight,
+    frameWidth,
+    frameHeight,
+    frames,
+    0,
+    NULL
+  };
+  world->sprite[entity].frames = malloc(frames * sizeof(SDL_Rect));
 
   // precalculate rects for frames
   for (int i = 0; i < frames; i++) {
@@ -75,4 +78,16 @@ void Position_SetY(World *world, int entity, int y) {
 void Position_SetXY(World *world, int entity, int x, int y) {
   world->position[entity].x = x;
   world->position[entity].y = y;
+}
+
+void World_Free(World *world) {
+  TTF_CloseFont(world->font);
+  SDL_DestroyRenderer(world->renderer);
+  for (int i = 0; i < ENTITY_COUNT; i++) {
+    if (world->mask[i] & SPRITE) {
+      SDL_DestroyTexture(world->sprite[i].texture);
+      free(world->sprite[i].frames);
+    }
+  }
+  free(world);
 }

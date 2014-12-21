@@ -33,7 +33,7 @@ typedef struct Sprite {
 
   int numFrames;
   int curFrame;
-  SDL_Rect frames[];
+  SDL_Rect *frames;
 } Sprite;
 
 typedef struct Text {
