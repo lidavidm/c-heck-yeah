@@ -18,7 +18,7 @@ void Main_Init(World *world) {
   int entity = Entity_New(world);
   Position_New(world, entity);
   Position_SetXY(world, entity, 50, 211);
-  Text_New(world, entity, "Magical Girl Michael Mauer");
+  Text_New(world, entity, "Magical Girl Michael Mauer", (SDL_Color) { 255, 0, 0, 255 });
 }
 
 void Main_Update(World *world) {

@@ -54,7 +54,7 @@ void Position_New(World *world, int entity);
 void Sprite_New(World *world, int entity,
                int textureWidth, int textureHeight,
                int frameWidth, int frameHeight, int frames);
-void Text_New(World *world, int entity, char* text);
+void Text_New(World *world, int entity, char* text, SDL_Color color);
 
 int Entity_New(World *world);
 

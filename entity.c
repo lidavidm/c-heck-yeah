@@ -47,8 +47,8 @@ void Sprite_New(World *world, int entity,
   }
 }
 
-void Text_New(World *world, int entity, char* text) {
-  SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, (SDL_Color) { 255, 255, 255, 255 });
+void Text_New(World *world, int entity, char* text, SDL_Color color) {
+  SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, color);
 
   if (surface == NULL) {
     printf("%d Couldn't render text! Error: %s\n", __LINE__, TTF_GetError());
