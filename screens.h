@@ -21,12 +21,16 @@ typedef struct GameScreen {
 typedef struct Game {
   World *world;
   GameScreen *screen;
+  bool (*newScreen)(struct Game *game); // non-NULL = change game screen
 } Game;
 
 typedef struct {
   int continueEntity;
   int quitEntity;
 } MainState;
+
+typedef struct {
+} LevelState;
 
 bool Main_Init(Game *game);
 void Main_Update(Game *game);

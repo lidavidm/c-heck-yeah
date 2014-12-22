@@ -57,6 +57,7 @@ bool Main_Init(Game *game) {
   game->screen->update = Main_Update;
   game->screen->handleEvent = Main_HandleEvent;
   game->screen->render = Main_Render;
+  game->screen->end = Main_End;
 
   game->screen->state = malloc(sizeof(MainState));
   ((MainState*) game->screen->state)->continueEntity = continueGame;
@@ -81,6 +82,7 @@ void Main_HandleEvent(Game *game, SDL_Event *event) {
 
     if (Sprite_HitTest(game->world, ((MainState*) game->screen->state)->continueEntity, x, y)) {
       printf("%s\n", "Clicked continue");
+      game->newScreen = Level_Init;
     }
   }
 }
@@ -104,6 +106,20 @@ void Main_Render(Game *game) {
   }
 }
 
+void Main_End(Game *game) {
+  free(game->screen->state);
+}
+
+bool Level_Init(Game *game) {
+  game->screen->update = Level_Update;
+  game->screen->handleEvent = Level_HandleEvent;
+  game->screen->render = Level_Render;
+  game->screen->end = Level_End;
+
+  game->screen->state = malloc(sizeof(LevelState));
+  return true;
+}
+
 void Level_HandleEvent(Game *game, SDL_Event *event) {
 }
 
@@ -111,4 +127,7 @@ void Level_Update(Game *game) {
 }
 
 void Level_Render(Game *game) {
+}
+
+void Level_End(Game *game) {
 }

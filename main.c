@@ -14,7 +14,7 @@ int main(void) {
   unsigned int lastTime = 0;
   unsigned int lag = 0;
   SDL_Event evt;
-  Game game = (Game) { NULL, NULL };
+  Game game = (Game) { NULL, NULL, NULL };
   game.world = malloc(sizeof(World));
   game.screen = malloc(sizeof(GameScreen));
 
@@ -98,6 +98,13 @@ int main(void) {
 
     if (delta < 33) {
       SDL_Delay(33 - delta);
+    }
+
+    if (game.newScreen != NULL) {
+      if (!game.newScreen(&game)) {
+        goto cleanup;
+      }
+      game.newScreen = NULL;
     }
   }
 
