@@ -13,8 +13,10 @@ int main(void) {
   bool quit = false;
   unsigned int lastTime = 0;
   unsigned int lag = 0;
+  SDL_Event evt;
   Screen screen = SCREEN_MAIN;
   World *world = malloc(sizeof(World));
+  void *state = NULL;
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("Couldn't initialize SDL. Error: %s\n", SDL_GetError());
@@ -65,7 +67,7 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-  if (!Main_Init(world)) {
+  if (!Main_Init(world, &state)) {
     goto cleanup;
   }
 
@@ -75,21 +77,32 @@ int main(void) {
     lastTime = currentTime;
     lag += delta;
 
-    // TODO: store this info and pass to update
     while (SDL_PollEvent(&evt) != 0) {
       if (evt.type == SDL_QUIT) {
         quit = true;
         goto cleanup;
+      }
+      else {
+        switch (screen) {
+        case SCREEN_MAIN:
+          Main_HandleEvent(world, &evt, state);
+          break;
+        case SCREEN_LEVEL:
+          Level_HandleEvent(world, &evt, state);
+          break;
+        default:
+          break;
+        }
       }
     }
 
     while (lag >= TICKS_PER_UPDATE) {
       switch (screen) {
       case SCREEN_MAIN:
-        Main_Update(world);
+        Main_Update(world, state);
         break;
       case SCREEN_LEVEL:
-        Level_Update(world);
+        Level_Update(world, state);
         break;
       default:
         break;
@@ -100,10 +113,10 @@ int main(void) {
     SDL_RenderClear(renderer);
     switch (screen) {
     case SCREEN_MAIN:
-      Main_Render(world, renderer);
+      Main_Render(world, state);
       break;
     case SCREEN_LEVEL:
-      Level_Render(world, renderer);
+      Level_Render(world, state);
       break;
     default:
       break;

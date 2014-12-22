@@ -14,11 +14,19 @@ typedef enum {
   SCREEN_CREDITS
 } Screen;
 
-bool Main_Init(World *world);
-void Main_Update(World *world);
-void Main_Render(World *world, SDL_Renderer *renderer);
+typedef struct {
+  int continueEntity;
+  int quitEntity;
+} MainState;
 
-void Level_Update(World *world);
-void Level_Render(World *world, SDL_Renderer *renderer);
+bool Main_Init(World *world, void **state);
+void Main_Update(World *world, void *state);
+void Main_HandleEvent(World *world, SDL_Event *event, void *state);
+void Main_Render(World *world, void *state);
+// void Main_End
+
+void Level_Update(World *world, void *state);
+void Level_HandleEvent(World *world, SDL_Event *event, void *state);
+void Level_Render(World *world, void *state);
 
 #endif

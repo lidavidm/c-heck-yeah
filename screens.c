@@ -17,7 +17,7 @@
     For rendering: have a separate renderer that is given pointers to the
     relevant components
  */
-bool Main_Init(World *world) {
+bool Main_Init(World *world, void **state) {
   bool error = false;
   int bg, title, continueGame, quit;
   SDL_Surface *surface = NULL;
@@ -54,6 +54,10 @@ bool Main_Init(World *world) {
   Position_SetXY(world, quit, 720, 350);
   Text_New(world, quit, "Quit", (SDL_Color) { 0, 0, 0, 200 });
 
+  *state = malloc(sizeof(MainState));
+  ((MainState*) *state)->continueEntity = continueGame;
+  ((MainState*) *state)->quitEntity = quit;
+
   goto cleanup;
  error:
   error = true;
@@ -63,10 +67,21 @@ bool Main_Init(World *world) {
   return !error;
 }
 
-void Main_Update(World *world) {
+void Main_Update(World *world, void *state) {
 }
 
-void Main_Render(World *world, SDL_Renderer *renderer) {
+void Main_HandleEvent(World *world, SDL_Event *event, void *state) {
+  if (event->type == SDL_MOUSEBUTTONUP) {
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+
+    if (Sprite_HitTest(world, ((MainState*) state)->continueEntity, x, y)) {
+      printf("%s\n", "Clicked continue");
+    }
+  }
+}
+
+void Main_Render(World *world, void *state) {
   for (int i = 0; i < ENTITY_COUNT; i++) {
     if (world->mask[i] & SPRITE) {
       int frame = world->sprite[i].curFrame;
@@ -85,8 +100,11 @@ void Main_Render(World *world, SDL_Renderer *renderer) {
   }
 }
 
-void Level_Update(World *world) {
+void Level_HandleEvent(World *world, SDL_Event *event, void *state) {
 }
 
-void Level_Render(World *world, SDL_Renderer *renderer) {
+void Level_Update(World *world, void *state) {
+}
+
+void Level_Render(World *world, void *state) {
 }
