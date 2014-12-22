@@ -99,3 +99,17 @@ void World_Free(World *world) {
   }
   free(world);
 }
+
+bool Sprite_HitTest(World *world, int entity, int x, int y) {
+  int entityX = world->position[entity].x;
+  int entityY = world->position[entity].y;
+
+  int entityWidth = world->sprite[entity].width;
+  int entityHeight = world->sprite[entity].height;
+
+  if (x > entityX && x < (entityX + entityWidth) &&
+      y > entityY && y < (entityY + entityHeight)) {
+    return true;
+  }
+  return false;
+}

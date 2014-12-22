@@ -67,6 +67,8 @@ void Position_SetX(World *world, int entity, int x);
 void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
 
+bool Sprite_HitTest(World *world, int entity, int x, int y);
+
 void World_Free(World *world);
 
 #endif
