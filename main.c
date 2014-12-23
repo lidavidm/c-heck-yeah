@@ -15,8 +15,10 @@ int main(void) {
   bool quit = false;
   unsigned int lastTime = 0;
   unsigned int lag = 0;
-  Screen screen = SCREEN_MAIN;
-  World *world = malloc(sizeof(World));
+  SDL_Event evt;
+  Game game = (Game) { NULL, NULL, NULL };
+  game.world = malloc(sizeof(World));
+  game.screen = malloc(sizeof(GameScreen));
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("Couldn't initialize SDL. Error: %s\n", SDL_GetError());
@@ -42,7 +44,7 @@ int main(void) {
     printf("Couldn't create renderer. Error: %s\n", SDL_GetError());
     goto cleanup;
   }
-  world->renderer = renderer;
+  game.world->renderer = renderer;
 
   //Initialize chipmunk space (For physics)
   //TODO  
@@ -61,8 +63,8 @@ int main(void) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, SDL_GetError());
     goto cleanup;
   }
-  world->font = TTF_OpenFontRW(fontFile, 1, 42);
-  if (world->font == NULL) {
+  game.world->font = TTF_OpenFontRW(fontFile, 1, 42);
+  if (game.world->font == NULL) {
     printf("%d Couldn't load font. Error: %s\n", __LINE__, TTF_GetError());
     goto cleanup;
   }
@@ -70,7 +72,7 @@ int main(void) {
   lastTime = SDL_GetTicks();
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-  if (!Main_Init(world)) {
+  if (!Main_Init(&game)) {
     goto cleanup;
   }
 
@@ -80,48 +82,39 @@ int main(void) {
     lastTime = currentTime;
     lag += delta;
 
-    // TODO: store this info and pass to update
     while (SDL_PollEvent(&evt) != 0) {
       if (evt.type == SDL_QUIT) {
         quit = true;
         goto cleanup;
       }
+      else {
+        game.screen->handleEvent(&game, &evt);
+      }
     }
 
     while (lag >= TICKS_PER_UPDATE) {
-      switch (screen) {
-      case SCREEN_MAIN:
-        Main_Update(world);
-        break;
-      case SCREEN_LEVEL:
-        Level_Update(world);
-        break;
-      default:
-        break;
-      }
+      game.screen->update(&game);
       lag -= TICKS_PER_UPDATE;
     }
 
     SDL_RenderClear(renderer);
-    switch (screen) {
-    case SCREEN_MAIN:
-      Main_Render(world, renderer);
-      break;
-    case SCREEN_LEVEL:
-      Level_Render(world, renderer);
-      break;
-    default:
-      break;
-    }
+    game.screen->render(&game);
     SDL_RenderPresent(renderer);
 
     if (delta < 33) {
       SDL_Delay(33 - delta);
     }
+
+    if (game.newScreen != NULL) {
+      if (!game.newScreen(&game)) {
+        goto cleanup;
+      }
+      game.newScreen = NULL;
+    }
   }
 
  cleanup:
-  World_Free(world);
+  World_Free(game.world);
   SDL_DestroyWindow(window);
   TTF_Quit();
   SDL_Quit();

@@ -17,42 +17,51 @@
     For rendering: have a separate renderer that is given pointers to the
     relevant components
  */
-bool Main_Init(World *world) {
+bool Main_Init(Game *game) {
   bool error = false;
   int bg, title, continueGame, quit;
   SDL_Surface *surface = NULL;
   SDL_Texture *texture = NULL;
 
-  bg = Entity_New(world);
-  Position_New(world, bg);
-  Position_SetXY(world, bg, 0, 0);
+  bg = Entity_New(game->world);
+  Position_New(game->world, bg);
+  Position_SetXY(game->world, bg, 0, 0);
   surface = IMG_Load("bg.png");
   if (surface == NULL) {
     printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
     goto error;
   }
-  texture = SDL_CreateTextureFromSurface(world->renderer, surface);
+  texture = SDL_CreateTextureFromSurface(game->world->renderer, surface);
   if (texture == NULL) {
     printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
     goto error;
   }
 
-  Sprite_NewFromTexture(world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1);
+  Sprite_NewFromTexture(game->world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1);
 
-  title = Entity_New(world);
-  Position_New(world, title);
-  Position_SetXY(world, title, 720, 151);
-  Text_New(world, title, "Magical Girl Michael Mauer", (SDL_Color) { 200, 0, 0, 200 });
+  title = Entity_New(game->world);
+  Position_New(game->world, title);
+  Position_SetXY(game->world, title, 720, 151);
+  Text_New(game->world, title, "Magical Girl Michael Mauer", (SDL_Color) { 200, 0, 0, 200 });
 
-  continueGame = Entity_New(world);
-  Position_New(world, continueGame);
-  Position_SetXY(world, continueGame, 720, 250);
-  Text_New(world, continueGame, "Continue", (SDL_Color) { 0, 0, 0, 200 });
+  continueGame = Entity_New(game->world);
+  Position_New(game->world, continueGame);
+  Position_SetXY(game->world, continueGame, 720, 250);
+  Text_New(game->world, continueGame, "Continue", (SDL_Color) { 0, 0, 0, 200 });
 
-  quit = Entity_New(world);
-  Position_New(world, quit);
-  Position_SetXY(world, quit, 720, 350);
-  Text_New(world, quit, "Quit", (SDL_Color) { 0, 0, 0, 200 });
+  quit = Entity_New(game->world);
+  Position_New(game->world, quit);
+  Position_SetXY(game->world, quit, 720, 350);
+  Text_New(game->world, quit, "Quit", (SDL_Color) { 0, 0, 0, 200 });
+
+  game->screen->update = Main_Update;
+  game->screen->handleEvent = Main_HandleEvent;
+  game->screen->render = Main_Render;
+  game->screen->end = Main_End;
+
+  game->screen->state = malloc(sizeof(MainState));
+  ((MainState*) game->screen->state)->continueEntity = continueGame;
+  ((MainState*) game->screen->state)->quitEntity = quit;
 
   goto cleanup;
  error:
@@ -63,30 +72,62 @@ bool Main_Init(World *world) {
   return !error;
 }
 
-void Main_Update(World *world) {
+void Main_Update(Game *game) {
 }
 
-void Main_Render(World *world, SDL_Renderer *renderer) {
+void Main_HandleEvent(Game *game, SDL_Event *event) {
+  if (event->type == SDL_MOUSEBUTTONUP) {
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+
+    if (Sprite_HitTest(game->world, ((MainState*) game->screen->state)->continueEntity, x, y)) {
+      printf("%s\n", "Clicked continue");
+      game->newScreen = Level_Init;
+    }
+  }
+}
+
+void Main_Render(Game *game) {
   for (int i = 0; i < ENTITY_COUNT; i++) {
-    if (world->mask[i] & SPRITE) {
-      int frame = world->sprite[i].curFrame;
-      Position position = world->position[i];
-      Sprite sprite = world->sprite[i];
+    if (game->world->mask[i] & SPRITE) {
+      int frame = game->world->sprite[i].curFrame;
+      Position position = game->world->position[i];
+      Sprite sprite = game->world->sprite[i];
       SDL_Rect target = {
         position.x,
         position.y,
         sprite.frameWidth,
         sprite.frameHeight,
       };
-      SDL_RenderCopy(world->renderer, sprite.texture,
-                     &world->sprite[i].frames[frame],
+      SDL_RenderCopy(game->world->renderer, sprite.texture,
+                     &game->world->sprite[i].frames[frame],
                      &target);
     }
   }
 }
 
-void Level_Update(World *world) {
+void Main_End(Game *game) {
+  free(game->screen->state);
 }
 
-void Level_Render(World *world, SDL_Renderer *renderer) {
+bool Level_Init(Game *game) {
+  game->screen->update = Level_Update;
+  game->screen->handleEvent = Level_HandleEvent;
+  game->screen->render = Level_Render;
+  game->screen->end = Level_End;
+
+  game->screen->state = malloc(sizeof(LevelState));
+  return true;
+}
+
+void Level_HandleEvent(Game *game, SDL_Event *event) {
+}
+
+void Level_Update(Game *game) {
+}
+
+void Level_Render(Game *game) {
+}
+
+void Level_End(Game *game) {
 }

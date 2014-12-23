@@ -5,20 +5,43 @@
 
 #include "entity.h"
 
-typedef enum {
-  SCREEN_MAIN,
-  SCREEN_LEVEL,
-  SCREEN_VICTORY,
-  SCREEN_DEFEAT,
-  SCREEN_LOADING,
-  SCREEN_CREDITS
-} Screen;
+struct Game;
 
-bool Main_Init(World *world);
-void Main_Update(World *world);
-void Main_Render(World *world, SDL_Renderer *renderer);
+// http://stackoverflow.com/questions/2438539/
+// Function pointers shouldn't incur much (if any) overhead, while switch
+// statements do
+typedef struct GameScreen {
+  void (*update)(struct Game *game);
+  void (*handleEvent)(struct Game *game, SDL_Event *event);
+  void (*render)(struct Game *game);
+  void (*end)(struct Game *game);
+  void *state;
+} GameScreen;
 
-void Level_Update(World *world);
-void Level_Render(World *world, SDL_Renderer *renderer);
+typedef struct Game {
+  World *world;
+  GameScreen *screen;
+  bool (*newScreen)(struct Game *game); // non-NULL = change game screen
+} Game;
+
+typedef struct {
+  int continueEntity;
+  int quitEntity;
+} MainState;
+
+typedef struct {
+} LevelState;
+
+bool Main_Init(Game *game);
+void Main_Update(Game *game);
+void Main_HandleEvent(Game *game, SDL_Event *event);
+void Main_Render(Game *game);
+void Main_End(Game *game);
+
+bool Level_Init(Game *game);
+void Level_Update(Game *game);
+void Level_HandleEvent(Game *game, SDL_Event *event);
+void Level_Render(Game *game);
+void Level_End(Game *game);
 
 #endif

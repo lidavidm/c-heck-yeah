@@ -113,4 +113,17 @@ void Entity_Free(World *world, int entity)	{
 	if (world->mask[i] & POSITION)	free(world->Position[entity]);
 	if (world->mask[i] & HEALTH)	free(world->Health[entity]);
 	if (world->mask[i] & BODY)	cpBodyFree(world->Body[entity]);
+
+bool Sprite_HitTest(World *world, int entity, int x, int y) {
+  int entityX = world->position[entity].x;
+  int entityY = world->position[entity].y;
+
+  int entityWidth = world->sprite[entity].width;
+  int entityHeight = world->sprite[entity].height;
+
+  if (x > entityX && x < (entityX + entityWidth) &&
+      y > entityY && y < (entityY + entityHeight)) {
+    return true;
+  }
+  return false;
 }
