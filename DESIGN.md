@@ -57,3 +57,9 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
 
 - Tiled Map Editor (http://mapeditor.org)
 - https://github.com/baylej/tmx/blob/master/examples/sdl.c
+
+## Art
+
+Temporary art: http://gaurav.munjal.us/Universal-LPC-Spritesheet-Character-Generator
+
+## Music
