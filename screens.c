@@ -130,4 +130,5 @@ void Level_Render(Game *game) {
 }
 
 void Level_End(Game *game) {
+  free(game->screen->state);
 }

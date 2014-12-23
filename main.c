@@ -106,6 +106,7 @@ int main(void) {
     }
 
     if (game.newScreen != NULL) {
+      game.screen->end(&game);
       if (!game.newScreen(&game)) {
         goto cleanup;
       }
@@ -114,6 +115,7 @@ int main(void) {
   }
 
  cleanup:
+  game.screen->end(&game);
   World_Free(game.world);
   SDL_DestroyWindow(window);
   TTF_Quit();
