@@ -48,7 +48,7 @@ typedef struct World {
   Position position[ENTITY_COUNT];
   Health health[ENTITY_COUNT];
   Sprite sprite[ENTITY_COUNT];
-  cpBody Body[ENTITY_COUNT];
+  cpBody* body[ENTITY_COUNT];
   TTF_Font *font;
   SDL_Renderer *renderer;
   cpSpace *space;

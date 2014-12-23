@@ -106,13 +106,12 @@ void Entity_Free(World *world, int entity)	{
 	
 	// Free each component of entity. Remember to add when more components
 	// get added!
-	if (world->mask[i] & SPRITE)	{
-		SDL_DestroyTexture(World->sprite[entity].texture);
+	if (world->mask[entity] & SPRITE)	{
+		SDL_DestroyTexture(world->sprite[entity].texture);
 		free(world->sprite[entity].frames);
 	}
-	if (world->mask[i] & POSITION)	free(world->Position[entity]);
-	if (world->mask[i] & HEALTH)	free(world->Health[entity]);
-	if (world->mask[i] & BODY)	cpBodyFree(world->Body[entity]);
+	if (world->mask[entity] & BODY)	cpBodyFree(world->body[entity]);
+}
 
 bool Sprite_HitTest(World *world, int entity, int x, int y) {
   int entityX = world->position[entity].x;
