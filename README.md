@@ -7,3 +7,5 @@
 - SDL2_ttf
 - Chipmunk2D
 - TMX (https://github.com/baylej/tmx)
+  - Jansson
+  - libxml2
