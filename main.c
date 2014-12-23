@@ -6,10 +6,12 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <chipmunk.h>
 
 int main(void) {
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
+  cpSpace *space = NULL;
   bool quit = false;
   unsigned int lastTime = 0;
   unsigned int lag = 0;
@@ -33,6 +35,7 @@ int main(void) {
     goto cleanup;
   }
 
+  //Initialize renderer
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED |
                                 SDL_RENDERER_PRESENTVSYNC);
   if (renderer == NULL) {
@@ -41,6 +44,8 @@ int main(void) {
   }
   world->renderer = renderer;
 
+  //Initialize chipmunk space (For physics)
+  //TODO  
   if (TTF_Init() != 0) {
     printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
     goto cleanup;

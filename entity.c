@@ -3,7 +3,7 @@
 #include <SDL_ttf.h>
 
 /* Creates a new entity.
- *
+ * Potential TODO: Devise better algorithm to find new entity number
  * Returns: index to the entity, or -1 if no more entities can be created.
  */
 int Entity_New(World *world) {
@@ -15,11 +15,13 @@ int Entity_New(World *world) {
   return -1;
 }
 
+// Creates a default position (e.g: 0,0) for the given entity
 void Position_New(World *world, int entity) {
   world->mask[entity] |= POSITION;
   world->position[entity] = (Position) { 0, 0 };
 }
 
+// Creates a new sprite sheet for the given entity
 void Sprite_New(World *world, int entity,
                 int width, int height,
                 int frameWidth, int frameHeight, int frames) {
@@ -55,6 +57,7 @@ void Sprite_NewFromTexture(World *world, int entity,
   world->sprite[entity].texture = texture;
 }
 
+// To David: Why does this take entity as a parameter?
 void Text_New(World *world, int entity, char* text, SDL_Color color) {
   SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, color);
 
@@ -91,11 +94,23 @@ void Position_SetXY(World *world, int entity, int x, int y) {
 void World_Free(World *world) {
   TTF_CloseFont(world->font);
   SDL_DestroyRenderer(world->renderer);
+  cpSpaceFree(world->space);
   for (int i = 0; i < ENTITY_COUNT; i++) {
-    if (world->mask[i] & SPRITE) {
-      SDL_DestroyTexture(world->sprite[i].texture);
-      free(world->sprite[i].frames);
-    }
+  	Entity_Free(world, i);
   }
   free(world);
+}
+
+void Entity_Free(World *world, int entity)	{
+	if (entity >= ENTITY_COUNT) return;
+	
+	// Free each component of entity. Remember to add when more components
+	// get added!
+	if (world->mask[i] & SPRITE)	{
+		SDL_DestroyTexture(World->sprite[entity].texture);
+		free(world->sprite[entity].frames);
+	}
+	if (world->mask[i] & POSITION)	free(world->Position[entity]);
+	if (world->mask[i] & HEALTH)	free(world->Health[entity]);
+	if (world->mask[i] & BODY)	cpBodyFree(world->Body[entity]);
 }
