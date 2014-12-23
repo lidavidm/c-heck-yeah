@@ -96,21 +96,21 @@ void World_Free(World *world) {
   SDL_DestroyRenderer(world->renderer);
   cpSpaceFree(world->space);
   for (int i = 0; i < ENTITY_COUNT; i++) {
-  	Entity_Free(world, i);
+    Entity_Free(world, i);
   }
   free(world);
 }
 
 void Entity_Free(World *world, int entity)	{
-	if (entity >= ENTITY_COUNT) return;
-	
-	// Free each component of entity. Remember to add when more components
-	// get added!
-	if (world->mask[entity] & SPRITE)	{
-		SDL_DestroyTexture(world->sprite[entity].texture);
-		free(world->sprite[entity].frames);
-	}
-	if (world->mask[entity] & BODY)	cpBodyFree(world->body[entity]);
+  if (entity >= ENTITY_COUNT) return;
+
+  // Free each component of entity. Remember to add when more components
+  // get added!
+  if (world->mask[entity] & SPRITE)	{
+    SDL_DestroyTexture(world->sprite[entity].texture);
+    free(world->sprite[entity].frames);
+  }
+  if (world->mask[entity] & BODY)	cpBodyFree(world->body[entity]);
 }
 
 bool Sprite_HitTest(World *world, int entity, int x, int y) {

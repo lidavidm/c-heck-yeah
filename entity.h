@@ -1,5 +1,6 @@
 #ifndef ENTITY
 #define ENTITY
+
 #include <chipmunk.h>
 #include <SDL.h>
 #include <SDL_image.h>
