@@ -11,22 +11,22 @@ struct Game;
 // Function pointers shouldn't incur much (if any) overhead, while switch
 // statements do
 typedef struct GameScreen {
-  void (*update)(struct Game *game);
-  void (*handleEvent)(struct Game *game, SDL_Event *event);
-  void (*render)(struct Game *game);
-  void (*end)(struct Game *game);
-  void *state;
+    void (*update)(struct Game *game);
+    void (*handleEvent)(struct Game *game, SDL_Event *event);
+    void (*render)(struct Game *game);
+    void (*end)(struct Game *game);
+    void *state;
 } GameScreen;
 
 typedef struct Game {
-  World *world;
-  GameScreen *screen;
-  bool (*newScreen)(struct Game *game); // non-NULL = change game screen
+    World *world;
+    GameScreen *screen;
+    bool (*newScreen)(struct Game *game); // non-NULL = change game screen
 } Game;
 
 typedef struct {
-  int continueEntity;
-  int quitEntity;
+    int continueEntity;
+    int quitEntity;
 } MainState;
 
 typedef struct {

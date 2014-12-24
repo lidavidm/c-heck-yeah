@@ -14,6 +14,8 @@
 
 ### Level Design
 
+The player will modify tile properties. (Example: make some tiles bouncy.)
+
 ### Victory
 
 ## Code Structure
@@ -55,5 +57,14 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
 
 #### Tilemaps/Backgrounds
 
-- Tiled Map Editor (http://mapeditor.org)
-- https://github.com/baylej/tmx/blob/master/examples/sdl.c
+- Tyler's custom editor
+
+- Each tile has a collision shape defined for it (in a separate text file
+  that lists the points of the bounding polygon)
+- Each tile (with a collision shape) is an entity
+
+## Art
+
+Temporary art: http://gaurav.munjal.us/Universal-LPC-Spritesheet-Character-Generator
+
+## Music
