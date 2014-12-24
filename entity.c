@@ -94,10 +94,10 @@ void Position_SetXY(World *world, int entity, int x, int y) {
 void World_Free(World *world) {
   TTF_CloseFont(world->font);
   SDL_DestroyRenderer(world->renderer);
-  cpSpaceFree(world->space);
   for (int i = 0; i < ENTITY_COUNT; i++) {
   	Entity_Free(world, i);
   }
+  cpSpaceFree(world->space);
   free(world);
 }
 
