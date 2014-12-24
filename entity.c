@@ -42,7 +42,7 @@ void Sprite_New(World *world, int entity,
     for (int i = 0; i < frames; i++) {
         world->sprite[entity].frames[i] = (SDL_Rect) {
             i * frameWidth,
-            i * frameHeight,
+            0,
             frameWidth,
             frameHeight
         };
@@ -78,6 +78,10 @@ void Text_New(World *world, int entity, char* text, SDL_Color color) {
     SDL_FreeSurface(surface);
 }
 
+int Position_GetX(World *world, int entity) {
+    return world->position[entity].x;
+}
+
 void Position_SetX(World *world, int entity, int x) {
     world->position[entity].x = x;
 }
@@ -101,7 +105,7 @@ void World_Free(World *world) {
     free(world);
 }
 
-void Entity_Free(World *world, int entity)	{
+void Entity_Free(World *world, int entity) {
     if (entity >= ENTITY_COUNT) return;
 
     // Free each component of entity. Remember to add when more components
@@ -110,7 +114,11 @@ void Entity_Free(World *world, int entity)	{
         SDL_DestroyTexture(world->sprite[entity].texture);
         free(world->sprite[entity].frames);
     }
-    if (world->mask[entity] & BODY)	cpBodyFree(world->body[entity]);
+    if (world->mask[entity] & BODY) {
+        cpBodyFree(world->body[entity]);
+    }
+
+    world->mask[entity] = 0;
 }
 
 bool Sprite_HitTest(World *world, int entity, int x, int y) {
@@ -125,4 +133,11 @@ bool Sprite_HitTest(World *world, int entity, int x, int y) {
         return true;
     }
     return false;
+}
+
+void Sprite_NextFrame(World *world, int entity) {
+    world->sprite[entity].curFrame++;
+    if (world->sprite[entity].curFrame >= world->sprite[entity].numFrames) {
+        world->sprite[entity].curFrame = 0;
+    }
 }

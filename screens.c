@@ -60,8 +60,11 @@ bool Main_Init(Game *game) {
     game->screen->end = Main_End;
 
     game->screen->state = malloc(sizeof(MainState));
-    ((MainState*) game->screen->state)->continueEntity = continueGame;
-    ((MainState*) game->screen->state)->quitEntity = quit;
+    MainState *state = (MainState*) game->screen->state;
+    state->bgEntity = bg;
+    state->titleEntity = title;
+    state->continueEntity = continueGame;
+    state->quitEntity = quit;
 
     goto cleanup;
 error:
@@ -107,10 +110,30 @@ void Main_Render(Game *game) {
 }
 
 void Main_End(Game *game) {
+    MainState *state = (MainState*) game->screen->state;
+    Entity_Free(game->world, state->bgEntity);
+    Entity_Free(game->world, state->titleEntity);
+    Entity_Free(game->world, state->continueEntity);
+    Entity_Free(game->world, state->quitEntity);
     free(game->screen->state);
 }
 
 bool Level_Init(Game *game) {
+    bool error = false;
+    SDL_Surface *magicalgirlSurface;
+    SDL_Texture *magicalgirlTexture = NULL;
+
+    magicalgirlSurface = IMG_Load("assets/magicalgirl_walk.png");
+    if (magicalgirlSurface == NULL) {
+        printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
+        goto error;
+    }
+    magicalgirlTexture = SDL_CreateTextureFromSurface(game->world->renderer, magicalgirlSurface);
+    if (magicalgirlTexture == NULL) {
+        printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+        goto error;
+    }
+
     game->screen->update = Level_Update;
     game->screen->handleEvent = Level_HandleEvent;
     game->screen->render = Level_Render;
@@ -118,19 +141,84 @@ bool Level_Init(Game *game) {
 
     game->screen->state = malloc(sizeof(LevelState));
     LevelState *state = (LevelState*) game->screen->state;
-    return true;
+
+    state->magicalgirlEntity = Entity_New(game->world);
+    Position_New(game->world, state->magicalgirlEntity);
+    Position_SetXY(game->world, state->magicalgirlEntity, 0, 0);
+    Sprite_NewFromTexture(game->world, state->magicalgirlEntity,
+                          64, 64,
+                          magicalgirlTexture,
+                          64, 64, 19);
+
+    SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
+
+    goto cleanup;
+error:
+    error = true;
+cleanup:
+    SDL_FreeSurface(magicalgirlSurface);
+    return !error;
 }
 
 void Level_HandleEvent(Game *game, SDL_Event *event) {
+    LevelState *state = (LevelState*) game->screen->state;
+
+    if (event->type == SDL_KEYDOWN) {
+        if (event->key.keysym.sym == SDLK_LEFT) {
+            state->moving = true;
+            state->velocity = -2;
+        }
+        else if (event->key.keysym.sym == SDLK_RIGHT) {
+            state->moving = true;
+            state->velocity = 2;
+        }
+    }
+    else if (event->type == SDL_KEYUP) {
+        if (event->key.keysym.sym == SDLK_LEFT && state->velocity < 0) {
+            state->moving = false;
+            state->velocity = 0;
+        }
+        else if (event->key.keysym.sym == SDLK_RIGHT && state->velocity > 0) {
+            state->moving = false;
+            state->velocity = 0;
+        }
+    }
 }
 
 void Level_Update(Game *game) {
+    static int ticksPassed = 0;
+
+    LevelState *state = (LevelState*) game->screen->state;
+    ticksPassed++;
+
+    if (ticksPassed >= 5) {
+        Sprite_NextFrame(game->world, state->magicalgirlEntity);
+        ticksPassed = 0;
+    }
+
+    if (state->moving) {
+        Position_SetX(game->world, state->magicalgirlEntity,
+                      Position_GetX(game->world, state->magicalgirlEntity) + state->velocity);
+    }
 }
 
 void Level_Render(Game *game) {
+    int entity = ((LevelState*) game->screen->state)->magicalgirlEntity;
+    int frame = game->world->sprite[entity].curFrame;
+    Position position = game->world->position[entity];
+    Sprite sprite = game->world->sprite[entity];
+    SDL_Rect target = {
+        position.x,
+        position.y,
+        sprite.frameWidth,
+        sprite.frameHeight,
+    };
+
+    SDL_RenderCopy(game->world->renderer, sprite.texture,
+                   &game->world->sprite[entity].frames[frame],
+                   &target);
 }
 
 void Level_End(Game *game) {
-    tmx_map_free(((LevelState*) game->screen->state)->map);
     free(game->screen->state);
 }
