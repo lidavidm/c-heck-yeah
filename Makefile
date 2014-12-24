@@ -15,7 +15,6 @@ ifeq ($(UNAME_S),Linux)
 #Tyler's Configs
 else
 	INC=/usr/local/Cellar/sdl2/2.0.3/include/SDL2 /usr/local/Cellar/sdl2_image/2.0.0_1/include/SDL2 /usr/local/Cellar/sdl2_ttf/2.0.12/include/SDL2 /usr/local/Cellar/chipmunk/6.2.1/include/chipmunk
-	STATICLIBPARAMS=
 	LIB=chipmunk
 endif
 LIB+=SDL2 SDL2_ttf SDL2_image

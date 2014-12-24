@@ -131,6 +131,5 @@ void Level_Render(Game *game) {
 }
 
 void Level_End(Game *game) {
-    tmx_map_free(((LevelState*) game->screen->state)->map);
     free(game->screen->state);
 }

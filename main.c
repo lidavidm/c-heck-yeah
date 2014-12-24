@@ -7,8 +7,18 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <chipmunk.h>
+#include <stdio.h>
 
-int main(void) {
+// Usage: supply 0 args for normal play
+// supply a directory name to use the level editor: if the directory
+// already exists,  
+int main(int argc, char *argv[]) {
+    bool map_editor;
+    bool new_map;
+    if (argc > 1) return 1;
+    if (argc == 1)  {
+        //TODO
+    }
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     cpSpace *space = NULL;
