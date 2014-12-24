@@ -1,5 +1,4 @@
 #include "entity.h"
-#include <stdbool.h>
 
 typedef struct Position {
     int x;
@@ -26,4 +25,5 @@ typedef struct Level  {
 } Level;
 
 // loads the given level into the world's entity fields
+// returns: true if successful, false otherwise
 bool LoadLevel(World* world, Level level);
