@@ -31,3 +31,4 @@ main
 
 # Binaries
 *.xcf
+*assets/*.png

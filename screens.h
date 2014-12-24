@@ -25,11 +25,16 @@ typedef struct Game {
 } Game;
 
 typedef struct {
+    int bgEntity;
+    int titleEntity;
     int continueEntity;
     int quitEntity;
 } MainState;
 
 typedef struct {
+    int magicalgirlEntity;
+    bool moving;
+    int velocity;
 } LevelState;
 
 bool Main_Init(Game *game);

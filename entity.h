@@ -50,6 +50,7 @@ typedef struct World {
     Health health[ENTITY_COUNT];
     Sprite sprite[ENTITY_COUNT];
     cpBody* body[ENTITY_COUNT];
+    // TODO: move these to Game struct?
     TTF_Font *font;
     SDL_Renderer *renderer;
     cpSpace *space;
@@ -68,10 +69,12 @@ void Text_New(World *world, int entity, char* text, SDL_Color color);
 
 int Entity_New(World *world);
 
+int Position_GetX(World *world, int entity);
 void Position_SetX(World *world, int entity, int x);
 void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
 bool Sprite_HitTest(World *world, int entity, int x, int y);
+void Sprite_NextFrame(World *world, int entity);
 void World_Free(World *world);
 void Entity_Free(World *world, int entity);
 #endif
