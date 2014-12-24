@@ -83,6 +83,10 @@ void Text_New(World *world, int entity, char* text, SDL_Color color) {
     SDL_FreeSurface(surface);
 }
 
+int Position_GetY(World *world, int entity) {
+    return world->position[entity].y;
+}
+
 int Position_GetX(World *world, int entity) {
     return world->position[entity].x;
 }
@@ -142,6 +146,11 @@ bool Sprite_HitTest(World *world, int entity, int x, int y) {
         return true;
     }
     return false;
+}
+
+int Sprite_GetFrame(World *world, int entity) {
+    Sprite *sprite = &world->sprite[entity];
+    return sprite->curFrame;
 }
 
 void Sprite_SetFrame(World *world, int entity, int frame) {

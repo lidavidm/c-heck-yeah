@@ -123,6 +123,16 @@ bool Level_Init(Game *game) {
     SDL_Surface *magicalgirlSurface;
     SDL_Texture *magicalgirlTexture = NULL;
 
+    game->screen->update = Level_Update;
+    game->screen->handleEvent = Level_HandleEvent;
+    game->screen->render = Level_Render;
+    game->screen->end = Level_End;
+
+    game->screen->state = malloc(sizeof(LevelState));
+    LevelState *state = (LevelState*) game->screen->state;
+    state->velocity = 0;
+    state->playerState = PLAYER_STOPPED;
+
     magicalgirlSurface = IMG_Load("assets/magicalgirl_walk.png");
     if (magicalgirlSurface == NULL) {
         printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
@@ -133,14 +143,6 @@ bool Level_Init(Game *game) {
         printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
         goto error;
     }
-
-    game->screen->update = Level_Update;
-    game->screen->handleEvent = Level_HandleEvent;
-    game->screen->render = Level_Render;
-    game->screen->end = Level_End;
-
-    game->screen->state = malloc(sizeof(LevelState));
-    LevelState *state = (LevelState*) game->screen->state;
 
     state->magicalgirlEntity = Entity_New(game->world);
     Position_New(game->world, state->magicalgirlEntity);
@@ -154,6 +156,31 @@ bool Level_Init(Game *game) {
                         0, 1, 9);
     SpriteAnimation_New(game->world, state->magicalgirlEntity,
                         1, 10, 18);
+    Sprite_SetFrame(game->world, state->magicalgirlEntity, 1);
+
+    magicalgirlSurface = IMG_Load("assets/magicalgirl_fight.png");
+    if (magicalgirlSurface == NULL) {
+        printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
+        goto error;
+    }
+    magicalgirlTexture = SDL_CreateTextureFromSurface(game->world->renderer, magicalgirlSurface);
+    if (magicalgirlTexture == NULL) {
+        printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+        goto error;
+    }
+
+    state->magicalgirlCombatEntity = Entity_New(game->world);
+    Position_New(game->world, state->magicalgirlCombatEntity);
+    Position_SetXY(game->world, state->magicalgirlCombatEntity, -64, -64);
+    Sprite_NewFromTexture(game->world, state->magicalgirlCombatEntity,
+                          192, 192,
+                          magicalgirlTexture,
+                          192, 192, 12,
+                          2);
+    SpriteAnimation_New(game->world, state->magicalgirlCombatEntity,
+                        0, 0, 5);
+    SpriteAnimation_New(game->world, state->magicalgirlCombatEntity,
+                        1, 6, 11);
 
     SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 
@@ -169,21 +196,41 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
     LevelState *state = (LevelState*) game->screen->state;
 
     if (event->type == SDL_KEYDOWN) {
-        if (event->key.keysym.sym == SDLK_LEFT && (!state->moving || state->velocity > 0)) {
+        if (event->key.keysym.sym == SDLK_LEFT &&
+            (state->playerState == PLAYER_STOPPED || state->velocity > 0)) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 0);
-            state->moving = true;
+            state->playerState = PLAYER_MOVING;
             state->velocity = -2;
         }
-        else if (event->key.keysym.sym == SDLK_RIGHT && (!state->moving || state->velocity < 0)) {
+        else if (event->key.keysym.sym == SDLK_RIGHT &&
+                 (state->playerState == PLAYER_STOPPED || state->velocity < 0)) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
-            state->moving = true;
+            state->playerState = PLAYER_MOVING;
             state->velocity = 2;
+        }
+        else if (event->key.keysym.sym == SDLK_SPACE &&
+                 (state->playerState == PLAYER_STOPPED ||
+                  state->playerState == PLAYER_MOVING)) {
+            if (state->velocity < 0 ||
+                Sprite_GetFrame(game->world, state->magicalgirlEntity) == 1) {
+                // facing left
+                Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 0);
+            }
+            else {
+                // facing right
+                Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 1);
+            }
+            state->playerState = PLAYER_ATTACKING;
+            int x = Position_GetX(game->world, state->magicalgirlEntity);
+            int y = Position_GetY(game->world, state->magicalgirlEntity);
+
+            Position_SetXY(game->world, state->magicalgirlCombatEntity, x - 64, y - 64);
         }
     }
     else if (event->type == SDL_KEYUP) {
         if ((event->key.keysym.sym == SDLK_LEFT && state->velocity < 0) ||
             (event->key.keysym.sym == SDLK_RIGHT && state->velocity > 0)) {
-            state->moving = false;
+            state->playerState = PLAYER_STOPPED;
             state->velocity = 0;
             Sprite_StopAnimation(game->world, state->magicalgirlEntity);
 
@@ -201,7 +248,7 @@ void Level_Update(Game *game) {
     static int ticksPassed = 0;
 
     LevelState *state = (LevelState*) game->screen->state;
-    if (state->moving) {
+    if (state->playerState == PLAYER_MOVING) {
         ticksPassed++;
 
         if (ticksPassed >= 4) {
@@ -212,10 +259,35 @@ void Level_Update(Game *game) {
         Position_SetX(game->world, state->magicalgirlEntity,
                       Position_GetX(game->world, state->magicalgirlEntity) + state->velocity);
     }
+    else if (state->playerState == PLAYER_ATTACKING) {
+        ticksPassed++;
+        if (ticksPassed >= 3) {
+            Sprite_NextFrame(game->world, state->magicalgirlCombatEntity);
+            ticksPassed = 0;
+        }
+
+        int curFrame = Sprite_GetFrame(game->world, state->magicalgirlCombatEntity);
+        if (curFrame == 5 || curFrame == 11) {
+            if (state->velocity == 0) {
+                state->playerState = PLAYER_STOPPED;
+            }
+            else {
+                state->playerState = PLAYER_MOVING;
+            }
+        }
+    }
 }
 
 void Level_Render(Game *game) {
-    int entity = ((LevelState*) game->screen->state)->magicalgirlEntity;
+    LevelState *state = (LevelState*) game->screen->state;
+    int entity;
+    if (state->playerState == PLAYER_ATTACKING) {
+        entity = state->magicalgirlCombatEntity;
+    }
+    else {
+        entity = state->magicalgirlEntity;
+    }
+
     int frame = game->world->sprite[entity].curFrame;
     Position position = game->world->position[entity];
     Sprite sprite = game->world->sprite[entity];

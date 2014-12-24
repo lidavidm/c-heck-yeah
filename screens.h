@@ -31,9 +31,16 @@ typedef struct {
     int quitEntity;
 } MainState;
 
+typedef enum PlayerState {
+    PLAYER_STOPPED,
+    PLAYER_MOVING,
+    PLAYER_ATTACKING
+} PlayerState;
+
 typedef struct {
     int magicalgirlEntity;
-    bool moving;
+    int magicalgirlCombatEntity;
+    PlayerState playerState;
     int velocity;
 } LevelState;
 

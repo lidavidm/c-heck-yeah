@@ -83,11 +83,13 @@ void Text_New(World *world, int entity, char* text, SDL_Color color);
 int Entity_New(World *world);
 
 int Position_GetX(World *world, int entity);
+int Position_GetY(World *world, int entity);
 void Position_SetX(World *world, int entity, int x);
 void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
 bool Sprite_HitTest(World *world, int entity, int x, int y);
 void Sprite_NextFrame(World *world, int entity);
+int Sprite_GetFrame(World *world, int entity);
 void Sprite_SetFrame(World *world, int entity, int frame);
 void Sprite_SetAnimation(World *world, int entity, int animation);
 void Sprite_StopAnimation(World *world, int entity);
