@@ -8,9 +8,9 @@ UNAME_S=$(shell uname -s)
 #David's Configs
 ifeq ($(UNAME_S),Linux)
 	CFLAGS+=-fsanitize=address
-	INC=/usr/include/SDL2 ./include/chipmunk ./include/tmx
+	INC=/usr/include/SDL2 ./include/chipmunk
 # Hacky solution to get chipmunk/TMX statically linked on Linux
-	STATICLIBPARAMS=libchipmunk.a libtmx.a
+	STATICLIBPARAMS=libchipmunk.a
 	LIB=
 #Tyler's Configs
 else
@@ -18,7 +18,7 @@ else
 	STATICLIBPARAMS=
 	LIB=chipmunk
 endif
-LIB+=SDL2 SDL2_ttf SDL2_image z xml2 jansson
+LIB+=SDL2 SDL2_ttf SDL2_image
 INCPARAMS=$(foreach d, $(INC), -I$d)
 LIBPARAMS=$(foreach d, $(LIB), -l$d)
 

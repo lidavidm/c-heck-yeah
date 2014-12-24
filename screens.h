@@ -2,7 +2,6 @@
 #define SCREENS
 
 #include <SDL.h>
-#include <tmx.h>
 
 #include "entity.h"
 
@@ -31,7 +30,6 @@ typedef struct {
 } MainState;
 
 typedef struct {
-    tmx_map *map;
 } LevelState;
 
 bool Main_Init(Game *game);

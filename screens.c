@@ -118,11 +118,6 @@ bool Level_Init(Game *game) {
 
     game->screen->state = malloc(sizeof(LevelState));
     LevelState *state = (LevelState*) game->screen->state;
-    state->map = tmx_load("map.tmx");
-    if (state->map == NULL) {
-        printf("%d Could not load map: %s\n", __LINE__, tmx_strerr());
-        return false;
-    }
     return true;
 }
 
