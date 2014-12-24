@@ -47,7 +47,8 @@ int main(void) {
     game.world->renderer = renderer;
 
     //Initialize chipmunk space (For physics)
-    //TODO  
+    game.world->space = space;
+
     if (TTF_Init() != 0) {
         printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
         goto cleanup;
