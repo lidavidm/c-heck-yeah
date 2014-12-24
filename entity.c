@@ -24,7 +24,8 @@ void Position_New(World *world, int entity) {
 // Creates a new sprite sheet for the given entity
 void Sprite_New(World *world, int entity,
                 int width, int height,
-                int frameWidth, int frameHeight, int frames) {
+                int frameWidth, int frameHeight, int frames,
+                int animations) {
     world->mask[entity] |= SPRITE;
     world->sprite[entity] = (Sprite) {
         width,
@@ -34,9 +35,13 @@ void Sprite_New(World *world, int entity,
         frameHeight,
         frames,
         0,
+        NULL,
+        animations,
+        0,
         NULL
     };
     world->sprite[entity].frames = malloc(frames * sizeof(SDL_Rect));
+    world->sprite[entity].animations = malloc(animations * sizeof(SpriteAnimation));
 
     // precalculate rects for frames
     for (int i = 0; i < frames; i++) {
@@ -52,12 +57,12 @@ void Sprite_New(World *world, int entity,
 void Sprite_NewFromTexture(World *world, int entity,
                            int width, int height,
                            SDL_Texture *texture,
-                           int frameWidth, int frameHeight, int frames) {
-    Sprite_New(world, entity, width, height, frameWidth, frameHeight, frames);
+                           int frameWidth, int frameHeight, int frames,
+                           int animations) {
+    Sprite_New(world, entity, width, height, frameWidth, frameHeight, frames, animations);
     world->sprite[entity].texture = texture;
 }
 
-// To David: Why does this take entity as a parameter?
 void Text_New(World *world, int entity, char* text, SDL_Color color) {
     SDL_Surface *surface = TTF_RenderText_Blended(world->font, text, color);
 
@@ -72,7 +77,7 @@ void Text_New(World *world, int entity, char* text, SDL_Color color) {
         printf("Couldn't render text! Error: %s\n", SDL_GetError());
         // TODO: handle error
     }
-    Sprite_New(world, entity, surface->w, surface->h, surface->w, surface->h, 1);
+    Sprite_New(world, entity, surface->w, surface->h, surface->w, surface->h, 1, 0);
     world->sprite[entity].texture = texture;
 
     SDL_FreeSurface(surface);
@@ -113,6 +118,10 @@ void Entity_Free(World *world, int entity) {
     if (world->mask[entity] & SPRITE)	{
         SDL_DestroyTexture(world->sprite[entity].texture);
         free(world->sprite[entity].frames);
+        /* for (int i = 0; i < world->sprite[entity].numAnimations; i++) { */
+        /*     free(world->sprite[entity].animations[i].frames); */
+        /* } */
+        free(world->sprite[entity].animations);
     }
     if (world->mask[entity] & BODY) {
         cpBodyFree(world->body[entity]);
@@ -135,9 +144,56 @@ bool Sprite_HitTest(World *world, int entity, int x, int y) {
     return false;
 }
 
+void Sprite_SetFrame(World *world, int entity, int frame) {
+    Sprite *sprite = &world->sprite[entity];
+    if (frame >= sprite->numFrames || frame < 0) {
+        printf("%d Invalid frame index %d\n", __LINE__, frame);
+        // TODO: handle error
+        return;
+    }
+    // TODO: check that frame belongs to current animation
+    sprite->curFrame = frame;
+}
+
+void Sprite_SetAnimation(World *world, int entity, int animation) {
+    Sprite *sprite = &world->sprite[entity];
+    if (animation >= sprite->numAnimations || animation < 0) {
+        printf("%d Invalid animation index %d\n", __LINE__, animation);
+        // TODO: handle error
+        return;
+    }
+    sprite->curAnimation = animation;
+    sprite->curFrame = sprite->animations[animation].start;
+}
+
+void Sprite_StopAnimation(World *world, int entity) {
+    Sprite *sprite = &world->sprite[entity];
+    sprite->curAnimation = SPRITE_ANIMATION_NONE;
+}
+
+void SpriteAnimation_New(World *world, int entity,
+                         int animation, int start, int end) {
+    Sprite *sprite = &world->sprite[entity];
+    if (animation >= sprite->numAnimations || animation < 0) {
+        printf("%d Invalid animation index %d\n", __LINE__, animation);
+        // TODO: handle error
+        return;
+    }
+    if (start < 0 || end > sprite->numFrames || start > end) {
+        printf("%d Invalid animation bounds %d %d\n", __LINE__, start, end);
+    }
+    sprite->animations[animation] = (SpriteAnimation) {
+        start, end
+    };
+}
+
 void Sprite_NextFrame(World *world, int entity) {
-    world->sprite[entity].curFrame++;
-    if (world->sprite[entity].curFrame >= world->sprite[entity].numFrames) {
-        world->sprite[entity].curFrame = 0;
+    Sprite *sprite = &world->sprite[entity];
+    if (sprite->curAnimation == SPRITE_ANIMATION_NONE) return;
+
+    SpriteAnimation *anim = &sprite->animations[sprite->curAnimation];
+    sprite->curFrame++;
+    if (sprite->curFrame > anim->end) {
+        sprite->curFrame = anim->start;
     }
 }

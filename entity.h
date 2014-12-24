@@ -27,6 +27,11 @@ typedef struct Health {
     int health;
 } Health;
 
+typedef struct SpriteAnimation {
+    int start;
+    int end;
+} SpriteAnimation;
+
 typedef struct Sprite {
     // the size to render the sprite at
     int width;
@@ -39,6 +44,10 @@ typedef struct Sprite {
     int numFrames;
     int curFrame;
     SDL_Rect *frames;
+
+    int numAnimations;
+    int curAnimation;
+    SpriteAnimation *animations;
 } Sprite;
 
 typedef struct Text {
@@ -56,14 +65,18 @@ typedef struct World {
     cpSpace *space;
 } World;
 
+#define SPRITE_ANIMATION_NONE -1
+
 void Position_New(World *world, int entity);
 void Sprite_New(World *world, int entity,
                 int width, int height,
-                int frameWidth, int frameHeight, int frames);
+                int frameWidth, int frameHeight, int frames,
+                int animations);
 void Sprite_NewFromTexture(World *world, int entity,
                            int width, int height,
                            SDL_Texture *texture,
-                           int frameWidth, int frameHeight, int frames);
+                           int frameWidth, int frameHeight, int frames,
+                           int animations);
 void Physics_Body_New(World *world, int entity);
 void Text_New(World *world, int entity, char* text, SDL_Color color);
 
@@ -75,6 +88,10 @@ void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
 bool Sprite_HitTest(World *world, int entity, int x, int y);
 void Sprite_NextFrame(World *world, int entity);
+void Sprite_SetFrame(World *world, int entity, int frame);
+void Sprite_SetAnimation(World *world, int entity, int animation);
+void Sprite_StopAnimation(World *world, int entity);
+void SpriteAnimation_New(World *world, int entity, int animation, int start, int end);
 void World_Free(World *world);
 void Entity_Free(World *world, int entity);
 #endif

@@ -37,7 +37,7 @@ bool Main_Init(Game *game) {
         goto error;
     }
 
-    Sprite_NewFromTexture(game->world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1);
+    Sprite_NewFromTexture(game->world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1, 0);
 
     title = Entity_New(game->world);
     Position_New(game->world, title);
@@ -148,7 +148,12 @@ bool Level_Init(Game *game) {
     Sprite_NewFromTexture(game->world, state->magicalgirlEntity,
                           64, 64,
                           magicalgirlTexture,
-                          64, 64, 19);
+                          64, 64, 19,
+                          2);
+    SpriteAnimation_New(game->world, state->magicalgirlEntity,
+                        0, 1, 9);
+    SpriteAnimation_New(game->world, state->magicalgirlEntity,
+                        1, 10, 18);
 
     SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 
@@ -164,23 +169,30 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
     LevelState *state = (LevelState*) game->screen->state;
 
     if (event->type == SDL_KEYDOWN) {
-        if (event->key.keysym.sym == SDLK_LEFT) {
+        if (event->key.keysym.sym == SDLK_LEFT && (!state->moving || state->velocity > 0)) {
+            Sprite_SetAnimation(game->world, state->magicalgirlEntity, 0);
             state->moving = true;
             state->velocity = -2;
         }
-        else if (event->key.keysym.sym == SDLK_RIGHT) {
+        else if (event->key.keysym.sym == SDLK_RIGHT && (!state->moving || state->velocity < 0)) {
+            Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
             state->moving = true;
             state->velocity = 2;
         }
     }
     else if (event->type == SDL_KEYUP) {
-        if (event->key.keysym.sym == SDLK_LEFT && state->velocity < 0) {
+        if ((event->key.keysym.sym == SDLK_LEFT && state->velocity < 0) ||
+            (event->key.keysym.sym == SDLK_RIGHT && state->velocity > 0)) {
             state->moving = false;
             state->velocity = 0;
-        }
-        else if (event->key.keysym.sym == SDLK_RIGHT && state->velocity > 0) {
-            state->moving = false;
-            state->velocity = 0;
+            Sprite_StopAnimation(game->world, state->magicalgirlEntity);
+
+            if (event->key.keysym.sym == SDLK_LEFT) {
+                Sprite_SetFrame(game->world, state->magicalgirlEntity, 1);
+            }
+            else {
+                Sprite_SetFrame(game->world, state->magicalgirlEntity, 10);
+            }
         }
     }
 }
@@ -189,14 +201,14 @@ void Level_Update(Game *game) {
     static int ticksPassed = 0;
 
     LevelState *state = (LevelState*) game->screen->state;
-    ticksPassed++;
-
-    if (ticksPassed >= 5) {
-        Sprite_NextFrame(game->world, state->magicalgirlEntity);
-        ticksPassed = 0;
-    }
-
     if (state->moving) {
+        ticksPassed++;
+
+        if (ticksPassed >= 4) {
+            Sprite_NextFrame(game->world, state->magicalgirlEntity);
+            ticksPassed = 0;
+        }
+
         Position_SetX(game->world, state->magicalgirlEntity,
                       Position_GetX(game->world, state->magicalgirlEntity) + state->velocity);
     }

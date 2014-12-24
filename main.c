@@ -127,6 +127,7 @@ int main(int argc, char *argv[]) {
 
 cleanup:
     game.screen->end(&game);
+    free(game.screen);
     World_Free(game.world);
     SDL_DestroyWindow(window);
     TTF_Quit();
