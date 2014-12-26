@@ -44,6 +44,8 @@ typedef struct {
     int velocity;
 } LevelState;
 
+#define PLAYER_SPEED 1.0
+
 bool Main_Init(Game *game);
 void Main_Update(Game *game);
 void Main_HandleEvent(Game *game, SDL_Event *event);

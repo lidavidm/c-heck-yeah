@@ -15,7 +15,7 @@ typedef enum {
                        // track position in two coordinate systems
     SPRITE = 1 << 2,
     HEALTH = 1 << 3,
-    BODY = 1 << 4 // for physics
+    PHYSICS = 1 << 4 // for physics
 } EntityComponent; // renamed because of conflict with chipmunk
 
 typedef struct Position {
@@ -50,15 +50,21 @@ typedef struct Sprite {
     SpriteAnimation *animations;
 } Sprite;
 
-typedef struct Text {
-} Text;
+typedef struct Physics {
+    // Invariant: NULL iff shape is static shape attached to space->staticBody
+    cpBody *body;
+    cpShape *shape;
+} Physics;
+
+// http://stackoverflow.com/questions/10656588/why-shouldnt-i-use-pixels-as-unit-with-box2d
+#define PIXELS_PER_METER 64.0
 
 typedef struct World {
     int mask[ENTITY_COUNT];
     Position position[ENTITY_COUNT];
     Health health[ENTITY_COUNT];
     Sprite sprite[ENTITY_COUNT];
-    cpBody* body[ENTITY_COUNT];
+    Physics physics[ENTITY_COUNT];
     // TODO: move these to Game struct?
     TTF_Font *font;
     SDL_Renderer *renderer;
@@ -77,7 +83,9 @@ void Sprite_NewFromTexture(World *world, int entity,
                            SDL_Texture *texture,
                            int frameWidth, int frameHeight, int frames,
                            int animations);
-void Physics_Body_New(World *world, int entity);
+void SpriteAnimation_New(World *world, int entity, int animation, int start, int end);
+void Physics_New(World *world, int entity, cpBody *body, cpShape *shape);
+void Physics_NewStatic(World *world, int entity, cpShape *shape);
 void Text_New(World *world, int entity, char* text, SDL_Color color);
 
 int Entity_New(World *world);
@@ -87,13 +95,21 @@ int Position_GetY(World *world, int entity);
 void Position_SetX(World *world, int entity, int x);
 void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
+
 bool Sprite_HitTest(World *world, int entity, int x, int y);
 void Sprite_NextFrame(World *world, int entity);
 int Sprite_GetFrame(World *world, int entity);
 void Sprite_SetFrame(World *world, int entity, int frame);
 void Sprite_SetAnimation(World *world, int entity, int animation);
 void Sprite_StopAnimation(World *world, int entity);
-void SpriteAnimation_New(World *world, int entity, int animation, int start, int end);
+
+// Update the position component based on the physics component
+void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y);
+void Physics_UpdatePosition(World *world, int entity);
+void Physics_Step(World *world, cpFloat step);
+cpBody* Physics_GetBody(World *world, int entity);
+cpShape* Physics_GetShape(World *world, int entity);
+
 void World_Free(World *world);
 void Entity_Free(World *world, int entity);
 #endif

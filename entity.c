@@ -83,6 +83,20 @@ void Text_New(World *world, int entity, char* text, SDL_Color color) {
     SDL_FreeSurface(surface);
 }
 
+void Physics_New(World *world, int entity, cpBody *body, cpShape *shape) {
+    world->mask[entity] |= PHYSICS;
+    world->physics[entity].body = body;
+    world->physics[entity].shape = shape;
+    cpSpaceAddBody(world->space, body);
+    cpSpaceAddShape(world->space, shape);
+}
+
+void Physics_NewStatic(World *world, int entity, cpShape *shape) {
+    world->physics[entity].body = NULL;
+    world->physics[entity].shape = shape;
+    cpSpaceAddShape(world->space, shape);
+}
+
 int Position_GetY(World *world, int entity) {
     return world->position[entity].y;
 }
@@ -102,6 +116,28 @@ void Position_SetY(World *world, int entity, int y) {
 void Position_SetXY(World *world, int entity, int x, int y) {
     world->position[entity].x = x;
     world->position[entity].y = y;
+}
+
+void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y) {
+    cpBodySetPos(world->physics[entity].body, cpv(x, y));
+}
+
+void Physics_UpdatePosition(World *world, int entity) {
+    cpVect pos = cpBodyGetPos(Physics_GetBody(world, entity));
+    Position_SetXY(world, entity, PIXELS_PER_METER * pos.x, -PIXELS_PER_METER * pos.y);
+}
+
+void Physics_Step(World *world, cpFloat step) {
+    cpSpaceStep(world->space, step);
+}
+
+// TODO: inline these?
+cpBody* Physics_GetBody(World *world, int entity) {
+    return world->physics[entity].body;
+}
+
+cpShape* Physics_GetShape(World *world, int entity) {
+    return world->physics[entity].shape;
 }
 
 void World_Free(World *world) {
@@ -127,8 +163,11 @@ void Entity_Free(World *world, int entity) {
         /* } */
         free(world->sprite[entity].animations);
     }
-    if (world->mask[entity] & BODY) {
-        cpBodyFree(world->body[entity]);
+    if (world->mask[entity] & PHYSICS) {
+        if (world->physics[entity].body) {
+            cpBodyFree(world->physics[entity].body);
+        }
+        cpShapeFree(world->physics[entity].shape);
     }
 
     world->mask[entity] = 0;

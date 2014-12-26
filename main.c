@@ -57,6 +57,8 @@ int main(int argc, char *argv[]) {
     game.world->renderer = renderer;
 
     //Initialize chipmunk space (For physics)
+    space = cpSpaceNew();
+    cpSpaceSetGravity(space, cpv(0, -9.8));
     game.world->space = space;
 
     if (TTF_Init() != 0) {

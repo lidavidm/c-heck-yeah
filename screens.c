@@ -158,6 +158,19 @@ bool Level_Init(Game *game) {
                         1, 10, 18);
     Sprite_SetFrame(game->world, state->magicalgirlEntity, 1);
 
+    cpFloat mass = 50.0;
+    cpFloat width = 64.0 / PIXELS_PER_METER;
+    cpFloat height = 64.0 / PIXELS_PER_METER;
+    cpFloat moment = cpMomentForBox(50.0, width, height);
+    cpBody *body = cpBodyNew(mass, moment);
+    cpShape *shape = cpBoxShapeNew(body, width, height);
+    Physics_New(game->world, state->magicalgirlEntity, body, shape);
+    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
+
+    // TEMPORARY: a floor
+    Physics_NewStatic(game->world, Entity_New(game->world),
+                      cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -11), cpv(20, -11), 1));
+
     magicalgirlSurface = IMG_Load("assets/magicalgirl_fight.png");
     if (magicalgirlSurface == NULL) {
         printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
@@ -194,19 +207,30 @@ cleanup:
 
 void Level_HandleEvent(Game *game, SDL_Event *event) {
     LevelState *state = (LevelState*) game->screen->state;
+    cpBody *body = Physics_GetBody(game->world, state->magicalgirlEntity);
+    cpVect velocity = cpBodyGetVel(body);
+    bool onGround = velocity.y > -0.1 && velocity.y < 0.1;
 
     if (event->type == SDL_KEYDOWN) {
-        if (event->key.keysym.sym == SDLK_LEFT &&
-            (state->playerState == PLAYER_STOPPED || state->velocity > 0)) {
+        if (event->key.keysym.sym == SDLK_LEFT && onGround &&
+            (state->playerState == PLAYER_STOPPED || velocity.x >= 0)) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 0);
             state->playerState = PLAYER_MOVING;
-            state->velocity = -2;
+            state->velocity = -PLAYER_SPEED;
+            cpBodySetVel(body, cpv(-PLAYER_SPEED, velocity.y));
         }
-        else if (event->key.keysym.sym == SDLK_RIGHT &&
-                 (state->playerState == PLAYER_STOPPED || state->velocity < 0)) {
+        else if (event->key.keysym.sym == SDLK_RIGHT && onGround &&
+                 (state->playerState == PLAYER_STOPPED || velocity.x <= 0)) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
             state->playerState = PLAYER_MOVING;
-            state->velocity = 2;
+            state->velocity = PLAYER_SPEED;
+            cpBodySetVel(body, cpv(PLAYER_SPEED, velocity.y));
+        }
+        else if (event->key.keysym.sym == SDLK_UP && onGround &&
+                 (state->playerState == PLAYER_STOPPED || state->playerState == PLAYER_MOVING)) {
+            // Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
+            // TODO: state->playerState |= PLAYER_JUMPING;
+            cpBodyApplyImpulse(body, cpv(0, 200), cpv(0, 0));
         }
         else if (event->key.keysym.sym == SDLK_SPACE &&
                  (state->playerState == PLAYER_STOPPED ||
@@ -220,6 +244,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
                 // facing right
                 Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 1);
             }
+            cpBodySetVel(body, cpv(0, velocity.y));
             state->playerState = PLAYER_ATTACKING;
             int x = Position_GetX(game->world, state->magicalgirlEntity);
             int y = Position_GetY(game->world, state->magicalgirlEntity);
@@ -232,6 +257,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
             (event->key.keysym.sym == SDLK_RIGHT && state->velocity > 0)) {
             state->playerState = PLAYER_STOPPED;
             state->velocity = 0;
+            cpBodySetVel(body, cpv(0, velocity.y));
             Sprite_StopAnimation(game->world, state->magicalgirlEntity);
 
             if (event->key.keysym.sym == SDLK_LEFT) {
@@ -247,19 +273,23 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
 void Level_Update(Game *game) {
     static int ticksPassed = 0;
 
+    Physics_Step(game->world, 0.04);
+
     LevelState *state = (LevelState*) game->screen->state;
+    Physics_UpdatePosition(game->world, state->magicalgirlEntity);
     if (state->playerState == PLAYER_MOVING) {
         ticksPassed++;
-
         if (ticksPassed >= 4) {
             Sprite_NextFrame(game->world, state->magicalgirlEntity);
             ticksPassed = 0;
         }
-
-        Position_SetX(game->world, state->magicalgirlEntity,
-                      Position_GetX(game->world, state->magicalgirlEntity) + state->velocity);
     }
     else if (state->playerState == PLAYER_ATTACKING) {
+        int x = Position_GetX(game->world, state->magicalgirlEntity);
+        int y = Position_GetY(game->world, state->magicalgirlEntity);
+
+        Position_SetXY(game->world, state->magicalgirlCombatEntity, x - 64, y - 64);
+
         ticksPassed++;
         if (ticksPassed >= 3) {
             Sprite_NextFrame(game->world, state->magicalgirlCombatEntity);
@@ -273,6 +303,9 @@ void Level_Update(Game *game) {
             }
             else {
                 state->playerState = PLAYER_MOVING;
+                cpBody *body = Physics_GetBody(game->world, state->magicalgirlEntity);
+                cpVect velocity = cpBodyGetVel(body);
+                cpBodySetVel(body, cpv(state->velocity, velocity.y));
             }
         }
     }
