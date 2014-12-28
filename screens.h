@@ -32,19 +32,22 @@ typedef struct {
 } MainState;
 
 typedef enum PlayerState {
-    PLAYER_STOPPED,
-    PLAYER_MOVING,
-    PLAYER_ATTACKING
+    PLAYER_STOPPED = 1 << 0,
+    PLAYER_MOVING = 1 << 1,
+    PLAYER_JUMPING = 1 << 2,
+    PLAYER_ATTACKING = 1 << 3,
+    PLAYER_SPRINTING = 1 << 4
 } PlayerState;
 
 typedef struct {
     int magicalgirlEntity;
     int magicalgirlCombatEntity;
     PlayerState playerState;
-    int velocity;
+    bool facingRight;
 } LevelState;
 
 #define PLAYER_SPEED 1.0
+#define PLAYER_SPRINTING_SPEED 1.5
 
 bool Main_Init(Game *game);
 void Main_Update(Game *game);
