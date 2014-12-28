@@ -65,10 +65,14 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
 
 ##### Data Formats
 
--Tilesets will be saved as a folder with 2 items: tileset.png and description.dat\n
--levels are saved as *.dat\n
--Examples of the format will be added soon\n
--Format of files are a WIP: will grow as we develop gameplay\n
+-Tilesets will be saved as a folder with 2 items: tileset.png and description.dat
+
+-levels are saved as *.dat
+
+-Examples of the format will be added soon
+
+-Format of files are a WIP: will grow as we develop gameplay
+
 
 ## Art
 
