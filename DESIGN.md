@@ -65,7 +65,7 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
 
 ##### Data Formats
 
--Tilesets will be saved as a folder with 2 items: tileset.png and collisions.dat
+-Tilesets will be saved as a folder with 2 items: tileset.png and description.dat
 -levels are saved as *.dat
 -Examples of the format will be added soon
 -Format of files are a WIP: will grow as we develop gameplay
