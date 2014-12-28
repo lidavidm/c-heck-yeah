@@ -63,6 +63,12 @@ https://chipmunk-physics.net/release/ChipmunkLatest-Docs/
   that lists the points of the bounding polygon)
 - Each tile (with a collision shape) is an entity
 
+##### Data Formats
+
+-Tilesets will be saved as a folder with 2 items: tileset.png and collisions.dat
+-levels are saved as *.dat
+-Examples of the format will be added soon
+
 ## Art
 
 Temporary art: http://gaurav.munjal.us/Universal-LPC-Spritesheet-Character-Generator
