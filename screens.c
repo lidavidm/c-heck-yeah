@@ -245,8 +245,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
     static bool rightDown = false;
     LevelState *state = (LevelState*) game->screen->state;
     cpBody *body = Physics_GetBody(game->world, state->magicalgirlEntity);
-    cpVect velocity = cpBodyGetVel(body);
-    bool onGround = !(state->playerState & PLAYER_JUMPING); //velocity.y > -0.1 && velocity.y < 0.1;
+    bool onGround = !(state->playerState & PLAYER_JUMPING);
 
     if (event->type == SDL_KEYDOWN) {
         if (!leftDown && event->key.keysym.sym == SDLK_LEFT && onGround) {
@@ -269,9 +268,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
             cpBodyApplyImpulse(body, cpv(0, 200), cpv(0, 0));
         }
         else if (event->key.keysym.sym == SDLK_SPACE &&
-                 (state->playerState & PLAYER_STOPPED ||
-                  state->playerState & PLAYER_MOVING ||
-                  state->playerState & PLAYER_JUMPING)) {
+                 !(state->playerState & PLAYER_ATTACKING)) {
             if (state->facingRight) {
                 Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 1);
             }
