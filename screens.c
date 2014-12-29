@@ -161,12 +161,14 @@ bool Level_Init(Game *game) {
     cpFloat moment = cpMomentForBox(50.0, width, height);
     cpBody *body = cpBodyNew(mass, moment);
     cpShape *shape = cpBoxShapeNew(body, width, height);
+    cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
     Physics_New(game->world, state->magicalgirlEntity, body, shape);
     Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
 
     // TEMPORARY: a floor
-    Physics_NewStatic(game->world, Entity_New(game->world),
-                      cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -11), cpv(20, -11), 1));
+    cpShape *floor = cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -11), cpv(20, -11), 1);
+    cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
+    Physics_NewStatic(game->world, Entity_New(game->world), floor);
 
     magicalgirlSurface = IMG_Load("assets/magicalgirl_fight.png");
     if (magicalgirlSurface == NULL) {
@@ -194,12 +196,23 @@ bool Level_Init(Game *game) {
 
     SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 
+    cpSpaceAddCollisionHandler(game->world->space,
+                               PLAYER_COLLISION_TYPE, TERRAIN_COLLISION_TYPE,
+                               Level_HandleTerrainCollision, NULL, NULL, NULL,
+                               game);
+
     goto cleanup;
 error:
     error = true;
 cleanup:
     SDL_FreeSurface(magicalgirlSurface);
     return !error;
+}
+
+int Level_HandleTerrainCollision(cpArbiter *arb, struct cpSpace *space, void *data) {
+    Game *game = data;
+    ((LevelState*) game->screen->state)->playerState &= ~PLAYER_JUMPING;
+    return true;
 }
 
 void Level_SetPlayerVelocity(LevelState *state, cpBody *body) {
@@ -356,12 +369,7 @@ void Level_Update(Game *game) {
         }
     }
 
-    // TODO: this should really be defined using Chipmunk callbacks (because
-    // v_y == 0 at the vertex, incorrectly toggling the flag)
-    if (velocity.y > -0.1 && velocity.y < 0.1) {
-        state->playerState &= ~PLAYER_JUMPING;
-    }
-    else {
+    if (velocity.y < -0.1 || velocity.y > 0.1) {
         state->playerState |= PLAYER_JUMPING;
     }
 }

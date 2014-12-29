@@ -49,6 +49,10 @@ typedef struct {
 #define PLAYER_SPEED 1.0
 #define PLAYER_SPRINTING_SPEED 1.5
 
+#define PLAYER_COLLISION_TYPE 0
+#define ENEMY_COLLISION_TYPE 1
+#define TERRAIN_COLLISION_TYPE 2
+
 bool Main_Init(Game *game);
 void Main_Update(Game *game);
 void Main_HandleEvent(Game *game, SDL_Event *event);
@@ -58,6 +62,8 @@ void Main_End(Game *game);
 bool Level_Init(Game *game);
 void Level_Update(Game *game);
 void Level_HandleEvent(Game *game, SDL_Event *event);
+int Level_HandleTerrainCollision(cpArbiter *arb, struct cpSpace *space, void *data);
+void Level_SetPlayerVelocity(LevelState *state, cpBody *body);
 void Level_Render(Game *game);
 void Level_End(Game *game);
 

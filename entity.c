@@ -153,14 +153,11 @@ void World_Free(World *world) {
 void Entity_Free(World *world, int entity) {
     if (entity >= ENTITY_COUNT) return;
 
-    // Free each component of entity. Remember to add when more components
-    // get added!
+    // Free each component of entity allocated with malloc.
+    // Remember to extend when more components get added!
     if (world->mask[entity] & SPRITE)	{
         SDL_DestroyTexture(world->sprite[entity].texture);
         free(world->sprite[entity].frames);
-        /* for (int i = 0; i < world->sprite[entity].numAnimations; i++) { */
-        /*     free(world->sprite[entity].animations[i].frames); */
-        /* } */
         free(world->sprite[entity].animations);
     }
     if (world->mask[entity] & PHYSICS) {
