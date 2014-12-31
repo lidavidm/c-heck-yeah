@@ -42,6 +42,7 @@ typedef enum PlayerState {
 typedef struct {
     int magicalgirlEntity;
     int magicalgirlCombatEntity;
+    int hexEntity;
     PlayerState playerState;
     bool facingRight;
 } LevelState;

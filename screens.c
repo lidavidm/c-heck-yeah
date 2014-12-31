@@ -117,8 +117,7 @@ void Main_End(Game *game) {
 
 bool Level_Init(Game *game) {
     bool error = false;
-    SDL_Surface *magicalgirlSurface;
-    SDL_Texture *magicalgirlTexture = NULL;
+    SDL_Texture *walkTexture = NULL, *fightTexture = NULL, *hexTexture = NULL;
 
     game->screen->update = Level_Update;
     game->screen->handleEvent = Level_HandleEvent;
@@ -130,14 +129,8 @@ bool Level_Init(Game *game) {
     state->facingRight = false;
     state->playerState = PLAYER_STOPPED;
 
-    magicalgirlSurface = IMG_Load("assets/magicalgirl_walk.png");
-    if (magicalgirlSurface == NULL) {
-        printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
-        goto error;
-    }
-    magicalgirlTexture = SDL_CreateTextureFromSurface(game->world->renderer, magicalgirlSurface);
-    if (magicalgirlTexture == NULL) {
-        printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+    walkTexture = Sprite_LoadTexture(game->world, "assets/magicalgirl_walk.png");
+    if (walkTexture == NULL) {
         goto error;
     }
 
@@ -145,9 +138,9 @@ bool Level_Init(Game *game) {
     Position_New(game->world, state->magicalgirlEntity);
     Position_SetXY(game->world, state->magicalgirlEntity, 0, 0);
     Sprite_NewFromTexture(game->world, state->magicalgirlEntity,
-                          64, 64,
-                          magicalgirlTexture,
-                          64, 64, 19,
+                          64, 49,
+                          walkTexture,
+                          64, 49, 19,
                           2);
     SpriteAnimation_New(game->world, state->magicalgirlEntity,
                         0, 1, 9);
@@ -157,27 +150,22 @@ bool Level_Init(Game *game) {
 
     cpFloat mass = 50.0;
     cpFloat width = 64.0 / PIXELS_PER_METER;
-    cpFloat height = 64.0 / PIXELS_PER_METER;
-    cpFloat moment = cpMomentForBox(50.0, width, height);
+    cpFloat height = 49.0 / PIXELS_PER_METER;
+    cpFloat moment = cpMomentForBox(mass, width, height);
     cpBody *body = cpBodyNew(mass, moment);
     cpShape *shape = cpBoxShapeNew(body, width, height);
     cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
     Physics_New(game->world, state->magicalgirlEntity, body, shape);
-    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
+    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 1);
 
     // TEMPORARY: a floor
-    cpShape *floor = cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -11), cpv(20, -11), 1);
+    cpShape *floor = cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -0.32), cpv(20, -0.32), 0.0);
     cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
+    cpShapeSetFriction(floor, 1.0);
     Physics_NewStatic(game->world, Entity_New(game->world), floor);
 
-    magicalgirlSurface = IMG_Load("assets/magicalgirl_fight.png");
-    if (magicalgirlSurface == NULL) {
-        printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
-        goto error;
-    }
-    magicalgirlTexture = SDL_CreateTextureFromSurface(game->world->renderer, magicalgirlSurface);
-    if (magicalgirlTexture == NULL) {
-        printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+    fightTexture = Sprite_LoadTexture(game->world, "assets/magicalgirl_fight.png");
+    if (fightTexture == NULL) {
         goto error;
     }
 
@@ -186,7 +174,7 @@ bool Level_Init(Game *game) {
     Position_SetXY(game->world, state->magicalgirlCombatEntity, -64, -64);
     Sprite_NewFromTexture(game->world, state->magicalgirlCombatEntity,
                           192, 192,
-                          magicalgirlTexture,
+                          fightTexture,
                           192, 192, 12,
                           2);
     SpriteAnimation_New(game->world, state->magicalgirlCombatEntity,
@@ -194,7 +182,27 @@ bool Level_Init(Game *game) {
     SpriteAnimation_New(game->world, state->magicalgirlCombatEntity,
                         1, 6, 11);
 
-    SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
+    hexTexture = Sprite_LoadTexture(game->world, "assets/hex.png");
+    if (hexTexture == NULL) {
+        goto error;
+    }
+    state->hexEntity = Entity_New(game->world);
+    Sprite_NewFromTexture(game->world, state->hexEntity,
+                          64, 55,
+                          hexTexture,
+                          64, 55, 1,
+                          0);
+    Position_New(game->world, state->hexEntity);
+    mass = 10.0;
+    width = 64.0 / PIXELS_PER_METER;
+    height = 55.0 / PIXELS_PER_METER;
+    moment = cpMomentForBox(mass, width, height);
+    body = cpBodyNew(mass, moment);
+    shape = cpBoxShapeNew(body, width, height);
+    cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
+    cpShapeSetFriction(shape, 0.5);
+    Physics_New(game->world, state->hexEntity, body, shape);
+    Physics_SetPosition(game->world, state->hexEntity, 2, 1);
 
     cpSpaceAddCollisionHandler(game->world->space,
                                PLAYER_COLLISION_TYPE, TERRAIN_COLLISION_TYPE,
@@ -205,7 +213,6 @@ bool Level_Init(Game *game) {
 error:
     error = true;
 cleanup:
-    SDL_FreeSurface(magicalgirlSurface);
     return !error;
 }
 
@@ -277,10 +284,6 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
             }
             state->playerState |= PLAYER_ATTACKING;
             Level_SetPlayerVelocity(state, body);
-
-            int x = Position_GetX(game->world, state->magicalgirlEntity);
-            int y = Position_GetY(game->world, state->magicalgirlEntity);
-            Position_SetXY(game->world, state->magicalgirlCombatEntity, x - 64, y - 64);
         }
         else if (event->key.keysym.sym == SDLK_LSHIFT) {
             state->playerState |= PLAYER_SPRINTING;
@@ -339,6 +342,7 @@ void Level_Update(Game *game) {
     }
 
     Physics_UpdatePosition(game->world, state->magicalgirlEntity);
+    Physics_UpdatePosition(game->world, state->hexEntity);
 
     if (state->playerState & PLAYER_MOVING && !(state->playerState & PLAYER_ATTACKING)) {
         ticksPassed++;
@@ -351,7 +355,7 @@ void Level_Update(Game *game) {
         int x = Position_GetX(game->world, state->magicalgirlEntity);
         int y = Position_GetY(game->world, state->magicalgirlEntity);
 
-        Position_SetXY(game->world, state->magicalgirlCombatEntity, x - 64, y - 64);
+        Position_SetXY(game->world, state->magicalgirlCombatEntity, x - 64, y + 64);
 
         ticksPassed++;
         if (ticksPassed >= 3) {
@@ -381,19 +385,14 @@ void Level_Render(Game *game) {
         entity = state->magicalgirlEntity;
     }
 
-    int frame = game->world->sprite[entity].curFrame;
-    Position position = game->world->position[entity];
-    Sprite sprite = game->world->sprite[entity];
-    SDL_Rect target = {
-        position.x,
-        position.y,
-        sprite.frameWidth,
-        sprite.frameHeight,
-    };
+    Sprite_Render(game->world, entity);
+    Sprite_Render(game->world, state->hexEntity);
 
-    SDL_RenderCopy(game->world->renderer, sprite.texture,
-                   &game->world->sprite[entity].frames[frame],
-                   &target);
+    SDL_SetRenderDrawColor(game->world->renderer, 0, 0, 0, 0);
+    SDL_RenderDrawLine(game->world->renderer,
+                       -20 * PIXELS_PER_METER, WINDOW_HEIGHT - 0 * PIXELS_PER_METER,
+                       20 * PIXELS_PER_METER, WINDOW_HEIGHT - 0 * PIXELS_PER_METER);
+    SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 }
 
 void Level_End(Game *game) {

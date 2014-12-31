@@ -1,7 +1,5 @@
 #include "entity.h"
 
-#include <SDL_ttf.h>
-
 /* Creates a new entity.
  * Potential TODO: Devise better algorithm to find new entity number
  * Returns: index to the entity, or -1 if no more entities can be created.
@@ -92,6 +90,7 @@ void Physics_New(World *world, int entity, cpBody *body, cpShape *shape) {
 }
 
 void Physics_NewStatic(World *world, int entity, cpShape *shape) {
+    world->mask[entity] |= PHYSICS;
     world->physics[entity].body = NULL;
     world->physics[entity].shape = shape;
     cpSpaceAddShape(world->space, shape);
@@ -124,7 +123,7 @@ void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y) {
 
 void Physics_UpdatePosition(World *world, int entity) {
     cpVect pos = cpBodyGetPos(Physics_GetBody(world, entity));
-    Position_SetXY(world, entity, PIXELS_PER_METER * pos.x, -PIXELS_PER_METER * pos.y);
+    Position_SetXY(world, entity, PIXELS_PER_METER * pos.x, WINDOW_HEIGHT - PIXELS_PER_METER * pos.y);
 }
 
 void Physics_Step(World *world, cpFloat step) {
@@ -241,4 +240,39 @@ void Sprite_NextFrame(World *world, int entity) {
     if (sprite->curFrame > anim->end) {
         sprite->curFrame = anim->start;
     }
+}
+
+SDL_Texture* Sprite_LoadTexture(World *world, char *path) {
+    SDL_Texture *result = NULL;
+    SDL_Surface *surface = IMG_Load(path);
+    if (surface == NULL) {
+        printf("%d Could not load background image %s: %s\n", __LINE__, path, IMG_GetError());
+        goto cleanup;
+    }
+
+    result = SDL_CreateTextureFromSurface(world->renderer, surface);
+    if (result == NULL) {
+        printf("%d Could not create background texture from %s: %s\n", __LINE__, path, SDL_GetError());
+        goto cleanup;
+    }
+
+cleanup:
+    SDL_FreeSurface(surface);
+    return result;
+}
+
+void Sprite_Render(World *world, int entity) {
+    int frame = world->sprite[entity].curFrame;
+    Position position = world->position[entity];
+    Sprite sprite = world->sprite[entity];
+    SDL_Rect target = {
+        position.x,
+        position.y - sprite.height,
+        sprite.width,
+        sprite.height,
+    };
+
+    SDL_RenderCopy(world->renderer, sprite.texture,
+                   &world->sprite[entity].frames[frame],
+                   &target);
 }

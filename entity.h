@@ -74,6 +74,7 @@ typedef struct World {
 #define SPRITE_ANIMATION_NONE -1
 
 void Position_New(World *world, int entity);
+SDL_Texture* Sprite_LoadTexture(World *world, char *path);
 void Sprite_New(World *world, int entity,
                 int width, int height,
                 int frameWidth, int frameHeight, int frames,
@@ -102,6 +103,7 @@ int Sprite_GetFrame(World *world, int entity);
 void Sprite_SetFrame(World *world, int entity, int frame);
 void Sprite_SetAnimation(World *world, int entity, int animation);
 void Sprite_StopAnimation(World *world, int entity);
+void Sprite_Render(World *world, int entity);
 
 // Update the position component based on the physics component
 void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y);
