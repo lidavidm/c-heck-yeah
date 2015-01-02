@@ -54,6 +54,9 @@ typedef struct Physics {
     // Invariant: NULL iff shape is static shape attached to space->staticBody
     cpBody *body;
     cpShape *shape;
+
+    int xOffset;
+    int yOffset;
 } Physics;
 
 // http://stackoverflow.com/questions/10656588/why-shouldnt-i-use-pixels-as-unit-with-box2d
@@ -85,7 +88,8 @@ void Sprite_NewFromTexture(World *world, int entity,
                            int frameWidth, int frameHeight, int frames,
                            int animations);
 void SpriteAnimation_New(World *world, int entity, int animation, int start, int end);
-void Physics_New(World *world, int entity, cpBody *body, cpShape *shape);
+void Physics_New(World *world, int entity, cpBody *body, cpShape *shape,
+                 int xoffset, int yoffset);
 void Physics_NewStatic(World *world, int entity, cpShape *shape);
 void Text_New(World *world, int entity, char* text, SDL_Color color);
 

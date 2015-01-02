@@ -149,17 +149,18 @@ bool Level_Init(Game *game) {
     Sprite_SetFrame(game->world, state->magicalgirlEntity, 1);
 
     cpFloat mass = 50.0;
-    cpFloat width = 64.0 / PIXELS_PER_METER;
+    cpFloat width = 24.0 / PIXELS_PER_METER;
     cpFloat height = 49.0 / PIXELS_PER_METER;
     cpFloat moment = cpMomentForBox(mass, width, height);
     cpBody *body = cpBodyNew(mass, moment);
     cpShape *shape = cpBoxShapeNew(body, width, height);
     cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
-    Physics_New(game->world, state->magicalgirlEntity, body, shape);
-    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 1);
+    cpShapeSetFriction(shape, 0.3);
+    Physics_New(game->world, state->magicalgirlEntity, body, shape, 20, 0);
+    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
 
     // TEMPORARY: a floor
-    cpShape *floor = cpSegmentShapeNew(game->world->space->staticBody, cpv(-20, -0.32), cpv(20, -0.32), 0.0);
+    cpShape *floor = cpBoxShapeNew2(game->world->space->staticBody, (cpBB) { -20, -1, 20, 0 });
     cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
     cpShapeSetFriction(floor, 1.0);
     Physics_NewStatic(game->world, Entity_New(game->world), floor);
@@ -199,9 +200,9 @@ bool Level_Init(Game *game) {
     moment = cpMomentForBox(mass, width, height);
     body = cpBodyNew(mass, moment);
     shape = cpBoxShapeNew(body, width, height);
-    cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
+    cpShapeSetCollisionType(shape, TERRAIN_COLLISION_TYPE);
     cpShapeSetFriction(shape, 0.5);
-    Physics_New(game->world, state->hexEntity, body, shape);
+    Physics_New(game->world, state->hexEntity, body, shape, 0, 0);
     Physics_SetPosition(game->world, state->hexEntity, 2, 1);
 
     cpSpaceAddCollisionHandler(game->world->space,
@@ -217,6 +218,7 @@ cleanup:
 }
 
 int Level_HandleTerrainCollision(cpArbiter *arb, struct cpSpace *space, void *data) {
+    printf("Hit ground\n");
     Game *game = data;
     ((LevelState*) game->screen->state)->playerState &= ~PLAYER_JUMPING;
     return true;
@@ -257,6 +259,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
     if (event->type == SDL_KEYDOWN) {
         if (!leftDown && event->key.keysym.sym == SDLK_LEFT && onGround) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 0);
+            state->playerState &= ~PLAYER_STOPPED;
             state->playerState |= PLAYER_MOVING;
             state->facingRight = false;
             Level_SetPlayerVelocity(state, body);
@@ -264,6 +267,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
         }
         else if (!rightDown && event->key.keysym.sym == SDLK_RIGHT && onGround) {
             Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
+            state->playerState &= ~PLAYER_STOPPED;
             state->playerState |= PLAYER_MOVING;
             state->facingRight = true;
             Level_SetPlayerVelocity(state, body);
@@ -298,6 +302,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
         else if (leftDown && event->key.keysym.sym == SDLK_LEFT) {
             if (!rightDown) {
                 state->playerState &= ~PLAYER_MOVING;
+                state->playerState |= PLAYER_STOPPED;
 
                 Sprite_StopAnimation(game->world, state->magicalgirlEntity);
                 Sprite_SetFrame(game->world, state->magicalgirlEntity, 1);
@@ -313,6 +318,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
         else if (rightDown && event->key.keysym.sym == SDLK_RIGHT) {
             if (!leftDown) {
                 state->playerState &= ~PLAYER_MOVING;
+                state->playerState |= PLAYER_STOPPED;
 
                 Sprite_StopAnimation(game->world, state->magicalgirlEntity);
                 Sprite_SetFrame(game->world, state->magicalgirlEntity, 10);
@@ -330,7 +336,8 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
 void Level_Update(Game *game) {
     static int ticksPassed = 0;
 
-    Physics_Step(game->world, 0.04);
+    for (int i = 0; i < 10; i++)
+        Physics_Step(game->world, 0.004);
 
     LevelState *state = (LevelState*) game->screen->state;
 
@@ -340,6 +347,18 @@ void Level_Update(Game *game) {
     if (state->playerState & PLAYER_SPRINTING) {
         animTicks = 2;
     }
+
+    cpVect pos = cpBodyGetPos(body);
+    printf("Stopped: %d Moving: %d Jumping: %d Atk: %d Sprint: %d x: %f y: %f vx: %f vy: %f\n",
+           state->playerState & PLAYER_STOPPED,
+           state->playerState & PLAYER_MOVING,
+           state->playerState & PLAYER_JUMPING,
+           state->playerState & PLAYER_ATTACKING,
+           state->playerState & PLAYER_SPRINTING,
+           pos.x,
+           pos.y,
+           velocity.x,
+           velocity.y);
 
     Physics_UpdatePosition(game->world, state->magicalgirlEntity);
     Physics_UpdatePosition(game->world, state->hexEntity);
@@ -370,7 +389,7 @@ void Level_Update(Game *game) {
         }
     }
 
-    if (velocity.y < -0.1 || velocity.y > 0.1) {
+    if (velocity.y < -0.2 || velocity.y > 0.2) {
         state->playerState |= PLAYER_JUMPING;
     }
 }

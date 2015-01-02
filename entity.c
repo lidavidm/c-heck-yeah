@@ -81,10 +81,14 @@ void Text_New(World *world, int entity, char* text, SDL_Color color) {
     SDL_FreeSurface(surface);
 }
 
-void Physics_New(World *world, int entity, cpBody *body, cpShape *shape) {
+// xoffset and yoffset: collision box may be smaller than frame
+void Physics_New(World *world, int entity, cpBody *body, cpShape *shape,
+                 int xoffset, int yoffset) {
     world->mask[entity] |= PHYSICS;
     world->physics[entity].body = body;
     world->physics[entity].shape = shape;
+    world->physics[entity].xOffset = xoffset;
+    world->physics[entity].yOffset = yoffset;
     cpSpaceAddBody(world->space, body);
     cpSpaceAddShape(world->space, shape);
 }
@@ -94,6 +98,9 @@ void Physics_NewStatic(World *world, int entity, cpShape *shape) {
     world->physics[entity].body = NULL;
     world->physics[entity].shape = shape;
     cpSpaceAddShape(world->space, shape);
+    // TODO:
+    world->physics[entity].xOffset = 0;
+    world->physics[entity].yOffset = 0;
 }
 
 int Position_GetY(World *world, int entity) {
@@ -123,7 +130,11 @@ void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y) {
 
 void Physics_UpdatePosition(World *world, int entity) {
     cpVect pos = cpBodyGetPos(Physics_GetBody(world, entity));
-    Position_SetXY(world, entity, PIXELS_PER_METER * pos.x, WINDOW_HEIGHT - PIXELS_PER_METER * pos.y);
+    int xOffset = world->physics[entity].xOffset;
+    int yOffset = world->physics[entity].yOffset;
+    Position_SetXY(world, entity,
+                   PIXELS_PER_METER * pos.x,
+                   WINDOW_HEIGHT - PIXELS_PER_METER * pos.y + yOffset);
 }
 
 void Physics_Step(World *world, cpFloat step) {
