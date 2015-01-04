@@ -44,6 +44,21 @@ typedef struct {
     int velocity;
 } LevelState;
 
+// Game state the level editor title screen
+typedef struct {
+    int bgEntity;
+    int titleEntity;
+    int newMapEntity;
+    int loadMapEntity;
+    int quitEntity;
+} EditorMainState;
+
+// Game state when the level editor is in editting state 
+typedef struct  {
+    int menuEntity;
+    int selectedTileEntity;
+} EditorLevelState;
+
 #define PLAYER_SPEED 1.0
 
 bool Main_Init(Game *game);
@@ -51,6 +66,12 @@ void Main_Update(Game *game);
 void Main_HandleEvent(Game *game, SDL_Event *event);
 void Main_Render(Game *game);
 void Main_End(Game *game);
+
+// Functions for the editor title screen. Render and update currently use regular (non-editor)
+                                       // Functions instead.
+bool Editor_Main_Init(Game *game);
+void Editor_Main_HandleEvent(Game *game, SDL_Event *event);
+void Editor_Main_End(Game *game);
 
 bool Level_Init(Game *game);
 void Level_Update(Game *game);

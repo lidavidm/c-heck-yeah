@@ -5,6 +5,31 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 
+// Attempts to load the background for the title screen. Returns the entity
+// number for the background, or -1 if surface fails, or -2 if texture fails to load
+static int initBG(Game *game)  {
+    int bg;
+
+    SDL_Surface *surface = NULL;
+    SDL_Texture *texture = NULL;
+    
+    bg = Entity_New(game->world);
+    Position_New(game->world, bg);
+    Position_SetXY(game->world, bg, 0, 0);
+     
+    surface = IMG_Load("bg.png");
+    texture = SDL_CreateTextureFromSurface(game->world->renderer, surface);
+    if (surface == NULL) return -1;
+    if (texture == NULL)    {
+        SDL_FreeSurface(surface);    
+        return -2;
+    }
+    Sprite_NewFromTexture(game->world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture,
+        surface->w, surface->h, 1, 0);
+    
+    SDL_FreeSurface(surface);
+    return bg; // all is well
+}
 /*
   TODO: this needs some hardcore refactoring + design work
 
@@ -20,24 +45,15 @@
 bool Main_Init(Game *game) {
     bool error = false;
     int bg, title, continueGame, quit;
-    SDL_Surface *surface = NULL;
-    SDL_Texture *texture = NULL;
-
-    bg = Entity_New(game->world);
-    Position_New(game->world, bg);
-    Position_SetXY(game->world, bg, 0, 0);
-    surface = IMG_Load("bg.png");
-    if (surface == NULL) {
-        printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
-        goto error;
+    
+    switch (bg = initBG(game))   {
+        case -1:
+            printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
+            goto error;
+        case -2:
+            printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+            goto error;
     }
-    texture = SDL_CreateTextureFromSurface(game->world->renderer, surface);
-    if (texture == NULL) {
-        printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
-        goto error;
-    }
-
-    Sprite_NewFromTexture(game->world, bg, WINDOW_WIDTH, WINDOW_HEIGHT, texture, surface->w, surface->h, 1, 0);
 
     title = Entity_New(game->world);
     Position_New(game->world, title);
@@ -70,8 +86,6 @@ bool Main_Init(Game *game) {
 error:
     error = true;
 cleanup:
-    SDL_FreeSurface(surface);
-
     return !error;
 }
 
@@ -198,10 +212,11 @@ bool Level_Init(Game *game) {
     SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 
     goto cleanup;
+
 error:
     error = true;
+
 cleanup:
-    SDL_FreeSurface(magicalgirlSurface);
     return !error;
 }
 
@@ -339,3 +354,69 @@ void Level_Render(Game *game) {
 void Level_End(Game *game) {
     free(game->screen->state);
 }
+
+
+bool Editor_Main_Init(Game *game)   {
+    bool error = false;
+    int bg, title, newMap, loadMap, quit;
+            
+    switch (bg = initBG(game))  {
+        case -1:
+            printf("%d Could not load background image: %s\n", __LINE__, IMG_GetError());
+            goto error;
+        case -2:
+            printf("%d Could not load create background texture: %s\n", __LINE__, SDL_GetError());
+            goto error;
+    }
+
+    title = Entity_New(game->world);
+    Position_New(game->world, title);
+    Position_SetXY(game->world, title, 600, 50);
+    Text_New(game->world, title, "Magical Michael's Magical Editor", (SDL_Color) { 200, 0, 0, 200});
+
+    newMap = Entity_New(game->world);
+    Position_New(game->world, newMap);
+    Position_SetXY(game->world, newMap, 700, 250);
+    Text_New(game->world, newMap, "New Map", (SDL_Color) { 0, 0, 0, 200});
+
+    loadMap = Entity_New(game->world);
+    Position_New(game->world, loadMap);
+    Position_SetXY(game->world, loadMap, 1000, 250);
+    Text_New(game->world, loadMap, "Load Map", (SDL_Color) { 0, 0, 0, 200});
+
+    quit = Entity_New(game->world);
+    Position_New(game->world, quit);
+    Position_SetXY(game->world, quit, 720, 350);
+    Text_New(game->world, quit, "Quit", (SDL_Color) { 0, 0, 0, 200 });
+
+    game->screen->update = Main_Update;
+    game->screen->handleEvent = Editor_Main_HandleEvent;
+    game->screen->render = Main_Render;
+    game->screen->end = Editor_Main_End;
+
+    game->screen->state = malloc(sizeof(EditorMainState));
+    EditorMainState *state = (EditorMainState*) game->screen->state;
+
+    state->bgEntity = bg;
+    state->titleEntity = title;
+    state->loadMapEntity = loadMap;
+    state->newMapEntity = newMap;
+    state->quitEntity = quit;
+
+    goto cleanup;
+
+error:
+    error = true;
+    
+cleanup:
+    return !error;
+
+}
+
+void Editor_Main_HandleEvent(Game *game, SDL_Event *event)  {
+    //TODO
+}
+void Editor_Main_End(Game *game)    {
+    //TODO
+}
+

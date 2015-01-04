@@ -6,12 +6,11 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-#include <chipmunk.h>
 #include <stdio.h>
+
 int main()  {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
-    cpSpace *space = NULL;
     bool quit = false;
     unsigned int lastTime = 0;
     unsigned int lag = 0;
@@ -25,7 +24,7 @@ int main()  {
         goto cleanup;
     }
 
-    window = SDL_CreateWindow("Michael and the Hex World",
+    window = SDL_CreateWindow("Michael and the Hex World: Editor",
                               SDL_WINDOWPOS_UNDEFINED,
                               SDL_WINDOWPOS_UNDEFINED,
                               WINDOW_WIDTH,
@@ -45,11 +44,6 @@ int main()  {
         goto cleanup;
     }
     game.world->renderer = renderer;
-
-    //Initialize chipmunk space (For physics)
-    space = cpSpaceNew();
-    cpSpaceSetGravity(space, cpv(0, -9.8));
-    game.world->space = space;
 
     if (TTF_Init() != 0) {
         printf("Couldn't load font renderer. Error: %s\n", TTF_GetError());
@@ -75,7 +69,7 @@ int main()  {
     lastTime = SDL_GetTicks();
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-    if (!Main_Init(&game)) {
+    if (!Editor_Main_Init(&game)) {
         goto cleanup;
     }
 

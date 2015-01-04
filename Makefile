@@ -1,7 +1,7 @@
 CC=clang
 LDFLAGS=
 CFLAGS=-g -O0 -Wall -Werror -Wextra -Wno-error=unused-parameter -Wno-error=unused-variable
-SOURCES=main.c entity.c screens.c
+SOURCES=entity.c screens.c
 OBJECTS=$(SOURCES:.c=.o)
 #Hacky solution to have a single makefile. TODO: Make this not suck
 UNAME_S=$(shell uname -s)
@@ -21,12 +21,16 @@ LIB+=SDL2 SDL2_ttf SDL2_image
 INCPARAMS=$(foreach d, $(INC), -I$d)
 LIBPARAMS=$(foreach d, $(LIB), -l$d)
 
-all: $(OBJECTS) main
+all: $(OBJECTS) main.o editor.o main editor
 
-.PHONY: main
+.PHONY: main editor clean all
 
+# Two target executables: the game itself, and the editor
 main:
-	$(CC) $(LIBPARAMS) $(INCPARAMS) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@ $(STATICLIBPARAMS)
+	$(CC) $(LIBPARAMS) $(INCPARAMS) $(CFLAGS) $(LDFLAGS) $(OBJECTS) main.o -o $@ $(STATICLIBPARAMS)
+
+editor:
+	$(CC) $(LIBPARAMS) $(INCPARAMS) $(CFLAGS) $(LDFLAGS) $(OBJECTS) editor.o -o $@ $(STATICLIBPARAMS)
 
 %.o: %.c
 	$(CC) $(INCPARAMS) $(CFLAGS) -c $< -o $@
@@ -34,3 +38,4 @@ main:
 clean:
 	rm *.o
 	rm main
+	rm editor
