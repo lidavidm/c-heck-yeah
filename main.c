@@ -89,11 +89,15 @@ int main(int argc, char *argv[]) {
         goto cleanup;
     }
 
+    float ticksPerFrame = 0;
+
     while (!quit) {
         unsigned int currentTime = SDL_GetTicks();
         unsigned int delta = currentTime - lastTime;
         lastTime = currentTime;
         lag += delta;
+        ticksPerFrame = (delta + ticksPerFrame) / 2.0;
+        printf("FPS: %02.f\n", 1000.0/ticksPerFrame);
 
         while (SDL_PollEvent(&evt) != 0) {
             if (evt.type == SDL_QUIT) {

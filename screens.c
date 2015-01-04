@@ -81,7 +81,6 @@ void Main_HandleEvent(Game *game, SDL_Event *event) {
         SDL_GetMouseState(&x, &y);
 
         if (Sprite_HitTest(game->world, ((MainState*) game->screen->state)->continueEntity, x, y)) {
-            printf("%s\n", "Clicked continue");
             game->newScreen = Level_Init;
         }
     }
