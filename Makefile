@@ -17,7 +17,7 @@ else
 	INC=/usr/local/Cellar/sdl2/2.0.3/include/SDL2 /usr/local/Cellar/sdl2_image/2.0.0_1/include/SDL2 /usr/local/Cellar/sdl2_ttf/2.0.12/include/SDL2 /usr/local/Cellar/chipmunk/6.2.1/include/chipmunk
 	LIB=chipmunk
 endif
-LIB+=SDL2 SDL2_ttf SDL2_image
+LIB+=SDL2 SDL2_ttf SDL2_image m
 INCPARAMS=$(foreach d, $(INC), -I$d)
 LIBPARAMS=$(foreach d, $(LIB), -l$d)
 

@@ -63,8 +63,6 @@ void Main_End(Game *game);
 bool Level_Init(Game *game);
 void Level_Update(Game *game);
 void Level_HandleEvent(Game *game, SDL_Event *event);
-int Level_HandleTerrainCollision(cpArbiter *arb, struct cpSpace *space, void *data);
-void Level_SetPlayerVelocity(LevelState *state, cpBody *body);
 void Level_Render(Game *game);
 void Level_End(Game *game);
 

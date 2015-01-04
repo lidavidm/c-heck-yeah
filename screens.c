@@ -115,6 +115,56 @@ void Main_End(Game *game) {
     free(game->screen->state);
 }
 
+// Based on https://github.com/slembcke/Chipmunk2D/blob/master/Demo/Player.c
+// Find the normal vector of the object the player is standing on, if it
+// exists. Do so by selecting the most vertical normal of the normals of the
+// objects with which the player body is colliding.
+static void findGroundNormal(cpBody *body, cpArbiter *arb, cpVect *normal) {
+    cpVect n = cpvneg(cpArbiterGetNormal(arb, 0));
+    if (n.y > normal->y) {
+        *normal = n;
+    }
+}
+
+
+static void playerUpdateVelocity(cpBody *body, cpVect g, cpFloat damping, cpFloat dt) {
+    Game *game = cpBodyGetUserData(body);
+    LevelState *state = (LevelState*) game->screen->state;
+
+    cpBody *playerBody = Physics_GetBody(game->world, state->magicalgirlEntity);
+    cpShape *playerShape = Physics_GetShape(game->world, state->magicalgirlEntity);
+
+    cpVect normal = cpvzero;
+    cpBodyEachArbiter(playerBody, (cpBodyArbiterIteratorFunc) findGroundNormal, &normal);
+
+    bool grounded = normal.y > 0.0;
+
+    if (grounded) {
+        state->playerState &= ~PLAYER_JUMPING;
+    }
+    else {
+        state->playerState |= PLAYER_JUMPING;
+    }
+
+    cpBodyUpdateVelocity(body, g, damping, dt);
+
+    if (state->playerState & PLAYER_MOVING) {
+        cpFloat vx = (state->playerState & PLAYER_SPRINTING) ?
+            PLAYER_SPRINTING_SPEED: PLAYER_SPEED;
+        if (!state->facingRight) {
+            vx *= -1;
+        }
+
+        playerShape->surface_v = cpv(vx, 0.0);
+        // set mu, friction coefficient
+        playerShape->u = grounded ? 1.0 : 0.0;
+    }
+    else {
+        playerShape->surface_v = cpv(0.0, 0.0);
+        playerShape->u = 1.0;
+    }
+}
+
 bool Level_Init(Game *game) {
     bool error = false;
     SDL_Texture *walkTexture = NULL, *fightTexture = NULL, *hexTexture = NULL;
@@ -156,6 +206,9 @@ bool Level_Init(Game *game) {
     cpShape *shape = cpBoxShapeNew(body, width, height);
     cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
     cpShapeSetFriction(shape, 0.3);
+    cpBodySetUserData(body, game);
+    // use a custom velocity update function
+    body->velocity_func = playerUpdateVelocity;
     Physics_New(game->world, state->magicalgirlEntity, body, shape, 20, 0);
     Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
 
@@ -205,47 +258,11 @@ bool Level_Init(Game *game) {
     Physics_New(game->world, state->hexEntity, body, shape, 0, 0);
     Physics_SetPosition(game->world, state->hexEntity, 2, 1);
 
-    cpSpaceAddCollisionHandler(game->world->space,
-                               PLAYER_COLLISION_TYPE, TERRAIN_COLLISION_TYPE,
-                               Level_HandleTerrainCollision, NULL, NULL, NULL,
-                               game);
-
     goto cleanup;
 error:
     error = true;
 cleanup:
     return !error;
-}
-
-int Level_HandleTerrainCollision(cpArbiter *arb, struct cpSpace *space, void *data) {
-    printf("Hit ground\n");
-    Game *game = data;
-    ((LevelState*) game->screen->state)->playerState &= ~PLAYER_JUMPING;
-    return true;
-}
-
-void Level_SetPlayerVelocity(LevelState *state, cpBody *body) {
-    cpVect velocity = cpBodyGetVel(body);
-
-    cpFloat speed = PLAYER_SPEED;
-    if (state->playerState & PLAYER_SPRINTING) {
-        speed = PLAYER_SPRINTING_SPEED;
-    }
-
-    if (state->playerState & PLAYER_MOVING) {
-        if (state->playerState & PLAYER_ATTACKING && !(state->playerState & PLAYER_JUMPING)) {
-            cpBodySetVel(body, cpv(0, velocity.y));
-        }
-        else if (state->facingRight) {
-            cpBodySetVel(body, cpv(speed, velocity.y));
-        }
-        else {
-            cpBodySetVel(body, cpv(-speed, velocity.y));
-        }
-    }
-    else {
-        cpBodySetVel(body, cpv(0, velocity.y));
-    }
 }
 
 void Level_HandleEvent(Game *game, SDL_Event *event) {
@@ -262,7 +279,6 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
             state->playerState &= ~PLAYER_STOPPED;
             state->playerState |= PLAYER_MOVING;
             state->facingRight = false;
-            Level_SetPlayerVelocity(state, body);
             leftDown = true;
         }
         else if (!rightDown && event->key.keysym.sym == SDLK_RIGHT && onGround) {
@@ -270,7 +286,6 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
             state->playerState &= ~PLAYER_STOPPED;
             state->playerState |= PLAYER_MOVING;
             state->facingRight = true;
-            Level_SetPlayerVelocity(state, body);
             rightDown = true;
         }
         else if (event->key.keysym.sym == SDLK_UP && onGround &&
@@ -287,17 +302,14 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
                 Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 0);
             }
             state->playerState |= PLAYER_ATTACKING;
-            Level_SetPlayerVelocity(state, body);
         }
         else if (event->key.keysym.sym == SDLK_LSHIFT) {
             state->playerState |= PLAYER_SPRINTING;
-            Level_SetPlayerVelocity(state, body);
         }
     }
     else if (event->type == SDL_KEYUP) {
         if (event->key.keysym.sym == SDLK_LSHIFT) {
             state->playerState &= ~PLAYER_SPRINTING;
-            Level_SetPlayerVelocity(state, body);
         }
         else if (leftDown && event->key.keysym.sym == SDLK_LEFT) {
             if (!rightDown) {
@@ -312,7 +324,6 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
 
                 Sprite_SetAnimation(game->world, state->magicalgirlEntity, 1);
             }
-            Level_SetPlayerVelocity(state, body);
             leftDown = false;
         }
         else if (rightDown && event->key.keysym.sym == SDLK_RIGHT) {
@@ -327,7 +338,6 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
                 state->facingRight = false;
                 Sprite_SetAnimation(game->world, state->magicalgirlEntity, 0);
             }
-            Level_SetPlayerVelocity(state, body);
             rightDown = false;
         }
     }
@@ -385,12 +395,7 @@ void Level_Update(Game *game) {
         int curFrame = Sprite_GetFrame(game->world, state->magicalgirlCombatEntity);
         if (curFrame == 5 || curFrame == 11) {
             state->playerState &= ~PLAYER_ATTACKING;
-            Level_SetPlayerVelocity(state, body);
         }
-    }
-
-    if (velocity.y < -0.2 || velocity.y > 0.2) {
-        state->playerState |= PLAYER_JUMPING;
     }
 }
 
