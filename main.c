@@ -1,6 +1,7 @@
 #include "defines.h"
 #include "entity.h"
 #include "screens.h"
+#include "noise.h"
 
 #include <stdbool.h>
 #include <SDL.h>
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
         lastTime = currentTime;
         lag += delta;
         ticksPerFrame = (delta + ticksPerFrame) / 2.0;
-        printf("FPS: %02.f\n", 1000.0/ticksPerFrame);
+        // printf("FPS: %02.f\n", 1000.0/ticksPerFrame);
 
         while (SDL_PollEvent(&evt) != 0) {
             if (evt.type == SDL_QUIT) {

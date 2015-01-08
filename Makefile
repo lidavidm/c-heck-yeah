@@ -1,7 +1,7 @@
 CC=clang
 LDFLAGS=
 CFLAGS=-g -O0 -Wall -Werror -Wextra -Wno-error=unused-parameter -Wno-error=unused-variable
-SOURCES=main.c entity.c screens.c
+SOURCES=main.c entity.c screens.c noise.c
 OBJECTS=$(SOURCES:.c=.o)
 #Hacky solution to have a single makefile. TODO: Make this not suck
 UNAME_S=$(shell uname -s)

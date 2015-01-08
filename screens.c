@@ -1,5 +1,6 @@
 #include "defines.h"
 #include "screens.h"
+#include "noise.h"
 
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -125,7 +126,6 @@ static void findGroundNormal(cpBody *body, cpArbiter *arb, cpVect *normal) {
     }
 }
 
-
 static void playerUpdateVelocity(cpBody *body, cpVect g, cpFloat damping, cpFloat dt) {
     Game *game = cpBodyGetUserData(body);
     LevelState *state = (LevelState*) game->screen->state;
@@ -209,13 +209,46 @@ bool Level_Init(Game *game) {
     // use a custom velocity update function
     body->velocity_func = playerUpdateVelocity;
     Physics_New(game->world, state->magicalgirlEntity, body, shape, 20, 0);
-    Physics_SetPosition(game->world, state->magicalgirlEntity, 0, 0);
+    Physics_SetPosition(game->world, state->magicalgirlEntity, 0.1, 10);
 
     // TEMPORARY: a floor
-    cpShape *floor = cpBoxShapeNew2(game->world->space->staticBody, (cpBB) { -20, -1, 20, 0 });
-    cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
-    cpShapeSetFriction(floor, 1.0);
-    Physics_NewStatic(game->world, Entity_New(game->world), floor);
+    double* n = noise(42, 100);
+    cpShape *floor;
+    int prev = 0;
+    for (int i = 0; i < 100; i++) {
+        int entity = Entity_New(game->world);
+        int height = (int) n[i];
+        printf("%d\n", height);
+        floor = cpSegmentShapeNew(game->world->space->staticBody,
+                                  cpv(i, height),
+                                  cpv(i + 1, height), 0.0);
+        cpSegmentShapeSetNeighbors(floor, cpv(i, height), cpv(i + 1, height));
+        cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
+        cpShapeSetFriction(floor, 1.0);
+        Position_New(game->world, entity);
+        Position_SetXY(game->world, entity,
+                       i * PIXELS_PER_METER,
+                       WINDOW_HEIGHT - height * PIXELS_PER_METER);
+        Physics_NewStatic(game->world, entity, floor);
+
+        if (height != prev) {
+            entity = Entity_New(game->world);
+            floor = cpSegmentShapeNew(game->world->space->staticBody,
+                                      cpv(i, prev),
+                                      cpv(i, height),
+                                      0.0);
+            cpShapeSetCollisionType(floor, TERRAIN_COLLISION_TYPE);
+            cpShapeSetFriction(floor, 1.0);
+            Position_New(game->world, entity);
+            Position_SetXY(game->world, entity,
+                           i * PIXELS_PER_METER,
+                           WINDOW_HEIGHT - height * PIXELS_PER_METER);
+            Physics_NewStatic(game->world, entity, floor);
+        }
+
+        prev = height;
+    }
+    free(n);
 
     fightTexture = Sprite_LoadTexture(game->world, "assets/magicalgirl_fight.png");
     if (fightTexture == NULL) {
@@ -412,9 +445,19 @@ void Level_Render(Game *game) {
     Sprite_Render(game->world, state->hexEntity);
 
     SDL_SetRenderDrawColor(game->world->renderer, 0, 0, 0, 0);
-    SDL_RenderDrawLine(game->world->renderer,
-                       -20 * PIXELS_PER_METER, WINDOW_HEIGHT - 0 * PIXELS_PER_METER,
-                       20 * PIXELS_PER_METER, WINDOW_HEIGHT - 0 * PIXELS_PER_METER);
+
+    for (int i = 0; i < ENTITY_COUNT; i++) {
+        if (game->world->mask[i] & PHYSICS) {
+            cpBody *body = Physics_GetBody(game->world, i);
+            if (body == NULL) {
+                cpShape *shape = Physics_GetShape(game->world, i);
+                SDL_RenderDrawLine(game->world->renderer,
+                                   Position_GetX(game->world, i), Position_GetY(game->world, i),
+                                   Position_GetX(game->world, i) + PIXELS_PER_METER, Position_GetY(game->world, i));
+            }
+        }
+    }
+
     SDL_SetRenderDrawColor(game->world->renderer, 0, 191, 255, 255);
 }
 

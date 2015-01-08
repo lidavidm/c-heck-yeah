@@ -133,7 +133,7 @@ void Physics_UpdatePosition(World *world, int entity) {
     int xOffset = world->physics[entity].xOffset;
     int yOffset = world->physics[entity].yOffset;
     Position_SetXY(world, entity,
-                   PIXELS_PER_METER * pos.x,
+                   PIXELS_PER_METER * pos.x - xOffset,
                    WINDOW_HEIGHT - PIXELS_PER_METER * pos.y + yOffset);
 }
 
