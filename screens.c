@@ -200,19 +200,19 @@ bool Level_Init(Game *game) {
     cpFloat mass = 50.0;
     cpFloat width = 24.0 / PIXELS_PER_METER;
     cpFloat height = 49.0 / PIXELS_PER_METER;
-    cpFloat moment = cpMomentForBox(mass, width, height);
+    cpFloat moment = INFINITY; // prevent Michael from rotating
     cpBody *body = cpBodyNew(mass, moment);
-    cpShape *shape = cpBoxShapeNew(body, width, height);
+    cpShape *shape = cpCircleShapeNew(body, height / 2, cpvzero);
     cpShapeSetCollisionType(shape, PLAYER_COLLISION_TYPE);
     cpShapeSetFriction(shape, 0.3);
     cpBodySetUserData(body, game);
     // use a custom velocity update function
     body->velocity_func = playerUpdateVelocity;
-    Physics_New(game->world, state->magicalgirlEntity, body, shape, 20, 0);
-    Physics_SetPosition(game->world, state->magicalgirlEntity, 0.1, 10);
+    Physics_New(game->world, state->magicalgirlEntity, body, shape, 25, 24);
+    Physics_SetPosition(game->world, state->magicalgirlEntity, 0.1, 4.1);
 
     // TEMPORARY: a floor
-    double* n = noise(42, 100);
+    double* n = noise(18590, 100);
     cpShape *floor;
     int prev = 0;
     for (int i = 0; i < 100; i++) {
@@ -323,7 +323,7 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
         else if (event->key.keysym.sym == SDLK_UP && onGround &&
                  (state->playerState & PLAYER_STOPPED || state->playerState & PLAYER_MOVING)) {
             state->playerState |= PLAYER_JUMPING;
-            cpBodyApplyImpulse(body, cpv(0, 200), cpv(0, 0));
+            cpBodyApplyImpulse(body, cpv(0, 175), cpv(0, 0));
         }
         else if (event->key.keysym.sym == SDLK_SPACE &&
                  !(state->playerState & PLAYER_ATTACKING)) {
