@@ -115,10 +115,12 @@ void Main_End(Game *game) {
     free(game->screen->state);
 }
 
-// Based on https://github.com/slembcke/Chipmunk2D/blob/master/Demo/Player.c
+// Based on https://github.com/slembcke/Chipmunk2D/blob/master/demo/Player.c
 // Find the normal vector of the object the player is standing on, if it
 // exists. Do so by selecting the most vertical normal of the normals of the
 // objects with which the player body is colliding.
+// Also see http://chipmunk-physics.net/forum/viewtopic.php?t=2245,
+// http://chipmunk-physics.net/forum/viewtopic.php?t=1932
 static void findGroundNormal(cpBody *body, cpArbiter *arb, cpVect *normal) {
     cpVect n = cpvneg(cpArbiterGetNormal(arb, 0));
     if (n.y > normal->y) {
@@ -282,13 +284,13 @@ bool Level_Init(Game *game) {
     mass = 10.0;
     width = 64.0 / PIXELS_PER_METER;
     height = 55.0 / PIXELS_PER_METER;
-    moment = cpMomentForBox(mass, width, height);
+    moment = INFINITY;
     body = cpBodyNew(mass, moment);
-    shape = cpBoxShapeNew(body, width, height);
+    shape = cpCircleShapeNew(body, width / 2, cpvzero);
     cpShapeSetCollisionType(shape, TERRAIN_COLLISION_TYPE);
     cpShapeSetFriction(shape, 0.5);
-    Physics_New(game->world, state->hexEntity, body, shape, 0, 0);
-    Physics_SetPosition(game->world, state->hexEntity, 2, 1);
+    Physics_New(game->world, state->hexEntity, body, shape, 32, 32);
+    Physics_SetPosition(game->world, state->hexEntity, 2, 10);
 
     goto cleanup;
 error:
