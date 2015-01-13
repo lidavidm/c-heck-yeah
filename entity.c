@@ -19,6 +19,11 @@ void Position_New(World *world, int entity) {
     world->position[entity] = (Position) { 0, 0 };
 }
 
+void Health_New(World *world, int entity, int health, int max) {
+    world->mask[entity] |= HEALTH;
+    world->health[entity] = (Health) { health, max };
+}
+
 // Creates a new sprite sheet for the given entity
 void Sprite_New(World *world, int entity,
                 int width, int height,
@@ -122,6 +127,10 @@ void Position_SetY(World *world, int entity, int y) {
 void Position_SetXY(World *world, int entity, int x, int y) {
     world->position[entity].x = x;
     world->position[entity].y = y;
+}
+
+bool Health_Damage(World *world, int entity, int amount) {
+    return (world->health[entity].health -= amount) <= 0;
 }
 
 void Physics_SetPosition(World *world, int entity, cpFloat x, cpFloat y) {

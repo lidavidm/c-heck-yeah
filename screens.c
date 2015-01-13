@@ -220,7 +220,6 @@ bool Level_Init(Game *game) {
     for (int i = 0; i < 100; i++) {
         int entity = Entity_New(game->world);
         int height = (int) n[i];
-        printf("%d\n", height);
         floor = cpSegmentShapeNew(game->world->space->staticBody,
                                   cpv(i, height),
                                   cpv(i + 1, height), 0.0);
@@ -286,11 +285,13 @@ bool Level_Init(Game *game) {
     height = 55.0 / PIXELS_PER_METER;
     moment = INFINITY;
     body = cpBodyNew(mass, moment);
+    cpBodySetUserData(body, &state->hexEntity);
     shape = cpCircleShapeNew(body, width / 2, cpvzero);
-    cpShapeSetCollisionType(shape, TERRAIN_COLLISION_TYPE);
+    cpShapeSetCollisionType(shape, ENEMY_COLLISION_TYPE);
     cpShapeSetFriction(shape, 0.5);
     Physics_New(game->world, state->hexEntity, body, shape, 32, 32);
     Physics_SetPosition(game->world, state->hexEntity, 2, 10);
+    Health_New(game->world, state->hexEntity, 25, 25);
 
     goto cleanup;
 error:
@@ -336,6 +337,26 @@ void Level_HandleEvent(Game *game, SDL_Event *event) {
                 Sprite_SetAnimation(game->world, state->magicalgirlCombatEntity, 0);
             }
             state->playerState |= PLAYER_ATTACKING;
+
+            // perform the attack
+            cpVect pos = cpBodyGetPos(body);
+            cpVect start = cpvadd(pos, cpv(0.7, 0.5));
+            cpVect end = cpvadd(start, cpv(0.1, 0));
+            cpSegmentQueryInfo info;
+            cpSpaceSegmentQueryFirst(
+                game->world->space, start, end,
+                CP_ALL_LAYERS, CP_NO_GROUP, &info);
+            if (info.shape != NULL &&
+                cpShapeGetCollisionType(info.shape) == ENEMY_COLLISION_TYPE) {
+                // knock it back a bit
+                cpBody *body = cpShapeGetBody(info.shape);
+                cpBodyApplyImpulse(body, cpv((1 - info.t) * 15, 0), cpv(0, 0));
+
+                int *entity = cpBodyGetUserData(body);
+                if (Health_Damage(game->world, *entity, 10)) {
+                    printf("Killed!\n");
+                }
+            }
         }
         else if (event->key.keysym.sym == SDLK_LSHIFT) {
             state->playerState |= PLAYER_SPRINTING;
@@ -393,16 +414,16 @@ void Level_Update(Game *game) {
     }
 
     cpVect pos = cpBodyGetPos(body);
-    printf("Stopped: %d Moving: %d Jumping: %d Atk: %d Sprint: %d x: %f y: %f vx: %f vy: %f\n",
-           state->playerState & PLAYER_STOPPED,
-           state->playerState & PLAYER_MOVING,
-           state->playerState & PLAYER_JUMPING,
-           state->playerState & PLAYER_ATTACKING,
-           state->playerState & PLAYER_SPRINTING,
-           pos.x,
-           pos.y,
-           velocity.x,
-           velocity.y);
+    /* printf("Stopped: %d Moving: %d Jumping: %d Atk: %d Sprint: %d x: %f y: %f vx: %f vy: %f\n", */
+    /*        state->playerState & PLAYER_STOPPED, */
+    /*        state->playerState & PLAYER_MOVING, */
+    /*        state->playerState & PLAYER_JUMPING, */
+    /*        state->playerState & PLAYER_ATTACKING, */
+    /*        state->playerState & PLAYER_SPRINTING, */
+    /*        pos.x, */
+    /*        pos.y, */
+    /*        velocity.x, */
+    /*        velocity.y); */
 
     Physics_UpdatePosition(game->world, state->magicalgirlEntity);
     Physics_UpdatePosition(game->world, state->hexEntity);

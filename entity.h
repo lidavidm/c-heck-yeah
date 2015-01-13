@@ -25,6 +25,7 @@ typedef struct Position {
 
 typedef struct Health {
     int health;
+    int max;
 } Health;
 
 typedef struct SpriteAnimation {
@@ -77,6 +78,7 @@ typedef struct World {
 #define SPRITE_ANIMATION_NONE -1
 
 void Position_New(World *world, int entity);
+void Health_New(World *world, int entity, int health, int max);
 SDL_Texture* Sprite_LoadTexture(World *world, char *path);
 void Sprite_New(World *world, int entity,
                 int width, int height,
@@ -100,6 +102,10 @@ int Position_GetY(World *world, int entity);
 void Position_SetX(World *world, int entity, int x);
 void Position_SetY(World *world, int entity, int y);
 void Position_SetXY(World *world, int entity, int x, int y);
+
+void Health_Heal(World *world, int entity, int amount);
+bool Health_Damage(World *world, int entity, int amount);
+double Health_GetPercent(World *world, int entity);
 
 bool Sprite_HitTest(World *world, int entity, int x, int y);
 void Sprite_NextFrame(World *world, int entity);
