@@ -15,7 +15,9 @@ typedef struct GameScreen {
     void (*handleEvent)(struct Game *game, SDL_Event *event);
     void (*render)(struct Game *game);
     void (*end)(struct Game *game);
-    void *state;
+    void *state; // We should probably use a union for this, no? I've defined
+                 // one below. I'm not sure what code depends on this being a
+                 // void pointer though so i didn't change one
 } GameScreen;
 
 typedef struct Game {
@@ -59,6 +61,14 @@ typedef struct  {
     int selectedTileEntity;
 } EditorLevelState;
 
+// We could use this to replace void pointers for state? Much cleaner solution
+typedef union {
+    MainState main;
+    LevelState level;
+    EditorMainState editorMain;
+    EditorLevelState editorLevel;
+} State;
+
 #define PLAYER_SPEED 1.0
 
 bool Main_Init(Game *game);
@@ -79,4 +89,10 @@ void Level_HandleEvent(Game *game, SDL_Event *event);
 void Level_Render(Game *game);
 void Level_End(Game *game);
 
+// Functions for the actual 
+bool Editor_Level_Init(Game *game);
+void Editor_Level_Update(Game *game);
+void Editor_Level_HandleEvent(Game *game, SDL_Event *event);
+void Editor_Level_Render(Game *game);
+void Editor_Level_End(Game *game);
 #endif

@@ -96,7 +96,6 @@ void Main_HandleEvent(Game *game, SDL_Event *event) {
     if (event->type == SDL_MOUSEBUTTONUP) {
         int x, y;
         SDL_GetMouseState(&x, &y);
-
         if (Sprite_HitTest(game->world, ((MainState*) game->screen->state)->continueEntity, x, y)) {
             printf("%s\n", "Clicked continue");
             game->newScreen = Level_Init;
@@ -382,7 +381,7 @@ bool Editor_Main_Init(Game *game)   {
     loadMap = Entity_New(game->world);
     Position_New(game->world, loadMap);
     Position_SetXY(game->world, loadMap, 1000, 250);
-    Text_New(game->world, loadMap, "Load Map", (SDL_Color) { 0, 0, 0, 200});
+    Text_New(game->world, loadMap, "Load Map", (SDL_Color) { 0, 0, 0, 200 });
 
     quit = Entity_New(game->world);
     Position_New(game->world, quit);
@@ -414,9 +413,51 @@ cleanup:
 }
 
 void Editor_Main_HandleEvent(Game *game, SDL_Event *event)  {
-    //TODO
+    EditorMainState *state = (EditorMainState*) game->screen->state;
+    
+    if (event->type == SDL_MOUSEBUTTONUP)   {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+
+        if (Sprite_HitTest(game->world, ((EditorMainState*) 
+                            game->screen->state)->loadMapEntity, x, y))   {
+            // TODO: Find a way to accomplish this on the main menu screen:
+            // unfortunately, will need some kind of text box
+            printf("Load Map Pressed\n");
+        }
+
+
+        else if (Sprite_HitTest(game->world, ((EditorMainState*) 
+                            game->screen->state)->newMapEntity, x, y))   {
+            game->newScreen = Editor_Level_Init;
+            printf("Load Map Pressed\n");
+            //TODO
+        }
+
+        else if (Sprite_HitTest(game->world, ((EditorMainState*) 
+                            game->screen->state)->loadMapEntity, x, y))   {
+            printf("Load Map Pressed\n");
+            // TODO: make this quit, preferably in a nice way 
+        }
+    }
 }
 void Editor_Main_End(Game *game)    {
     //TODO
 }
 
+bool Editor_Level_Init(Game *game)  {
+    //TODO
+    return false;
+}
+void Editor_Level_Update(Game *game)    {
+    //TODO
+}
+void Editor_Level_HandleEvent(Game *game, SDL_Event *event) {
+    //TODO
+}
+void Editor_Level_Render(Game *game)    {
+    //TODO: may not actually need this
+}
+void Editor_Level_End(Game *game)   {
+    //TODO
+}
